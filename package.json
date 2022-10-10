@@ -1,0 +1,24 @@
+{
+  "name": "api-zap-solid-express",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SnzDev/app-zap-solid-express.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/SnzDev/app-zap-solid-express/issues"
+  },
+  "homepage": "https://github.com/SnzDev/app-zap-solid-express#readme"
+}
