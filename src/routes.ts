@@ -3,8 +3,7 @@ import { initializeAllCompanysController } from "./use-cases/initialize-all-comp
 
 const companyRoutes = Router();
 
-companyRoutes.get("/", (request, response) =>
-  initializeAllCompanysController.handle(request, response)
-);
+//INITIALIZE WHEN THE SYSTEM STARY
+initializeAllCompanysController.handle();
 
 export { companyRoutes };

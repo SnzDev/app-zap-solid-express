@@ -7,10 +7,7 @@ export class InitializeAllCompanysController {
     private initializeAllCompanysUseCase: InitializeAllCompanysUseCase
   ) {}
 
-  async handle(request: Request, response: Response) {
-    // await this.initializeAllCompanysUseCase.execute();
+  async handle() {
     await this.initializeAllCompanysUseCase.execute();
-
-    return response.json({ initialized: true });
   }
 }

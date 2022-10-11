@@ -3,8 +3,9 @@ import { Client, LocalAuth } from "whatsapp-web.js";
 export const ModelInstance = (access_key: string) =>
   new Client({
     puppeteer: {
+      devtools: false,
       // executablePath: executablePath,
-      headless: false,
+      headless: !!process.env.HEADLESS,
       args: [
         "--no-sandbox",
         "--disable-setuid-sandbox",
