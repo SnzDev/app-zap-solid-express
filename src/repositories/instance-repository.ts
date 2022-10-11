@@ -1,18 +1,29 @@
-import { Client } from "whatsapp-web.js";
-
-export interface CreateNewLineDTO {
-  access_key: string;
-}
-
-export interface InstanceModelDTO {
-  access_key: string;
-  client: Client;
-}
+import {
+  InstanceCreateDTO,
+  InstanceDestroyDTO,
+  InstanceFindOneDTO,
+  InstanceInitDTO,
+  InstanceLogoutDTO,
+  InstanceModelDTO,
+  InstanceSendMessageDTO,
+  InstanceSendMessageResponseDTO,
+  InstanceSendSurveyDTO,
+  InstanceStatusDTO,
+  InstanceStatusResponseDTO,
+} from "./types/instance-dto";
 
 export interface InstanceRepository {
-  create(props: CreateNewLineDTO): void;
+  create(props: InstanceCreateDTO): void;
+  init(props: InstanceInitDTO): void;
   findAll(): InstanceModelDTO[];
-  finOne({ access_key }: CreateNewLineDTO): InstanceModelDTO | undefined;
-  destroy({ access_key }): Promise<void>;
-  logout({ access_key }): void;
+  findOne(props: InstanceFindOneDTO): InstanceModelDTO | undefined;
+  destroy(props: InstanceDestroyDTO): Promise<void>;
+  logout(props: InstanceLogoutDTO): void;
+  status(props: InstanceStatusDTO): Promise<InstanceStatusResponseDTO>;
+  sendMessage(
+    props: InstanceSendMessageDTO
+  ): Promise<InstanceSendMessageResponseDTO>;
+  // sendSurvey(
+  //   props: InstanceSendSurveyDTO
+  // ): Promise<InstanceSendSurveyResponseDTO>;
 }
