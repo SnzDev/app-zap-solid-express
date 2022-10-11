@@ -1,0 +1,210 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model company {
+  id             BigInt                  @id @default(autoincrement()) @db.UnsignedBigInt
+  name           String                  @db.VarChar(200)
+  active         Boolean
+  line           BigInt
+  app            String                  @db.VarChar(200)
+  access_key     String                  @db.VarChar(200)
+  port           Int
+  webhook_url    String?                 @db.VarChar(250)
+  webhook_method company_webhook_method?
+  id_external    String?                 @db.VarChar(255)
+  url_line       String?                 @db.VarChar(255)
+}
+
+model clients {
+  id               BigInt  @id @default(autoincrement()) @db.UnsignedBigInt
+  id_company       Int
+  name             String  @db.VarChar(100)
+  phone_number     String  @db.VarChar(19)
+  cpf              String? @db.VarChar(100)
+  email            String? @db.VarChar(100)
+  birthday         String? @db.VarChar(100)
+  receive_messages Boolean
+  id_external      String? @db.VarChar(255)
+}
+
+model clients_group {
+  id            BigInt  @id @default(autoincrement()) @db.UnsignedBigInt
+  group_id      BigInt
+  client_id     BigInt
+  extra_field_1 String? @db.VarChar(200)
+  extra_field_2 String? @db.VarChar(200)
+  extra_field_3 String? @db.VarChar(200)
+  extra_field_4 String? @db.VarChar(200)
+}
+
+model config {
+  id         BigInt @id @default(autoincrement()) @db.UnsignedBigInt
+  id_company Int
+  line       BigInt
+  app        String @db.VarChar(200)
+  access_key String @db.VarChar(200)
+}
+
+model failed_jobs {
+  id         BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
+  uuid       String   @db.VarChar(255)
+  connection String   @db.Text
+  queue      String   @db.Text
+  payload    String   @db.LongText
+  exception  String   @db.LongText
+  failed_at  DateTime @default(now()) @db.Timestamp(0)
+}
+
+model files {
+  id         BigInt     @id @default(autoincrement()) @db.UnsignedBigInt
+  id_company Int
+  url        String?    @db.VarChar(250)
+  type       files_type
+}
+
+model group {
+  id                   BigInt                      @id @default(autoincrement()) @db.UnsignedBigInt
+  id_company           Int
+  name                 String                      @db.VarChar(255)
+  interne_shift        group_interne_shift?
+  interne_shift_number group_interne_shift_number?
+}
+
+model jobs {
+  id           BigInt @id @default(autoincrement()) @db.UnsignedBigInt
+  queue        String @db.VarChar(255)
+  payload      String @db.LongText
+  attempts     Int    @db.UnsignedTinyInt
+  reserved_at  Int?   @db.UnsignedInt
+  available_at Int    @db.UnsignedInt
+  created_at   Int    @db.UnsignedInt
+}
+
+model messages {
+  id            BigInt  @id @default(autoincrement()) @db.UnsignedBigInt
+  id_company    Int
+  name          String? @db.VarChar(100)
+  message       String  @db.Text
+  is_survey     Boolean
+  first_option  String? @db.VarChar(50)
+  first_answer  String? @db.VarChar(250)
+  second_option String? @db.VarChar(50)
+  second_answer String? @db.VarChar(250)
+  id_file       Int?
+}
+
+model migrations {
+  id        Int    @id @default(autoincrement()) @db.UnsignedInt
+  migration String @db.VarChar(255)
+  batch     Int
+}
+
+model sections {
+  id         BigInt @id @default(autoincrement()) @db.UnsignedBigInt
+  id_company Int
+  name       String @db.VarChar(100)
+}
+
+model send_history {
+  id             BigInt               @id @default(autoincrement()) @db.UnsignedBigInt
+  id_company     Int
+  id_user        Int
+  id_group       Int
+  id_message     Int
+  is_scheduled   Boolean              @default(false)
+  when           DateTime?            @db.Timestamp(0)
+  interval_start Int?
+  interval_end   Int?
+  repeat         send_history_repeat?
+  deleted_at     DateTime?            @db.Timestamp(0)
+  created_at     DateTime?            @db.Timestamp(0)
+  updated_at     DateTime?            @db.Timestamp(0)
+}
+
+model settings {
+  id         BigInt  @id @default(autoincrement()) @db.UnsignedBigInt
+  id_company Int
+  fixed_ddd  Boolean
+  ddd        Int?
+}
+
+model shipping_history {
+  id                      BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  id_company              Int
+  id_group                Int?
+  id_survey               Int?
+  id_message              Int
+  id_section              Int?
+  id_user                 Int?
+  message                 String    @db.Text
+  phone_number            BigInt
+  hour                    DateTime  @db.Time(0)
+  date                    DateTime  @db.Date
+  protocol                String?   @db.VarChar(200)
+  question_answer_correct Boolean?
+  question_response       String?   @db.Text
+  question_response_date  DateTime? @db.Timestamp(0)
+  status                  Int?
+}
+
+model survey {
+  id         BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
+  id_company Int
+  id_group   Int      @default(0)
+  id_message Int      @default(0)
+  id_section Int?
+  hour       DateTime @db.Time(0)
+  date       DateTime @db.Date
+}
+
+model users {
+  id       BigInt        @id @default(autoincrement()) @db.UnsignedBigInt
+  name     String        @db.VarChar(255)
+  email    String        @unique(map: "users_email_unique") @db.VarChar(250)
+  password String        @db.VarChar(255)
+  company  Int?
+  section  Int?
+  profile  users_profile
+}
+
+enum files_type {
+  photo
+  pdf
+  video
+  doc
+}
+
+enum group_interne_shift {
+  MORNING
+  AFTERNOON
+  NIGHT
+}
+
+enum group_interne_shift_number {
+  one @map("1")
+  two @map("2")
+}
+
+enum users_profile {
+  ADMIN
+  MANAGER
+  USER
+}
+
+enum company_webhook_method {
+  get
+  post
+}
+
+enum send_history_repeat {
+  DAY_DAY
+  ONE_ON_WEEK
+  ONE_ON_MONTH
+  EVERYDAY
+}
