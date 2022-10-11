@@ -5,7 +5,7 @@ export const ModelInstance = (access_key: string) =>
     puppeteer: {
       devtools: false,
       // executablePath: executablePath,
-      headless: !!process.env.HEADLESS,
+      headless: true,
       args: [
         "--no-sandbox",
         "--disable-setuid-sandbox",
