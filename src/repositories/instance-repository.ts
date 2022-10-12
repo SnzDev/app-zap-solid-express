@@ -1,6 +1,9 @@
+import { ContactId } from "whatsapp-web.js";
 import {
   InstanceCreateDTO,
   InstanceDestroyDTO,
+  InstanceExistsNumberDTO,
+  InstanceExistsNumberResponseDTO,
   InstanceFindOneDTO,
   InstanceLogoutDTO,
   InstanceModelDTO,
@@ -18,9 +21,12 @@ export interface InstanceRepository {
   destroy(props: InstanceDestroyDTO): Promise<void>;
   logout(props: InstanceLogoutDTO): void;
   status(props: InstanceStatusDTO): Promise<InstanceStatusResponseDTO>;
-  sendMessage(
-    props: InstanceSendMessageDTO
-  ): Promise<InstanceSendMessageResponseDTO>;
+  existsNumber(
+    props: InstanceExistsNumberDTO
+  ): Promise<ContactId | null>;
+  // sendMessage(
+  //   props: InstanceSendMessageDTO
+  // ): Promise<InstanceSendMessageResponseDTO>;
   // sendSurvey(
   //   props: InstanceSendSurveyDTO
   // ): Promise<InstanceSendSurveyResponseDTO>;

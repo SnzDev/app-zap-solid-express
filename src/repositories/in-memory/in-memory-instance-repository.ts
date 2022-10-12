@@ -1,10 +1,13 @@
-import { MessageMedia } from "whatsapp-web.js";
+import { ContactId, MessageMedia } from "whatsapp-web.js";
 import { logger } from "../../logger";
 import { ModelInstance } from "../../model/model-instance";
+import { Exception } from "../../error";
 import { InstanceRepository } from "../instance-repository";
 import {
   InstanceCreateDTO,
   InstanceDestroyDTO,
+  InstanceExistsNumberDTO,
+  InstanceExistsNumberResponseDTO,
   InstanceFindOneDTO,
   InstanceLogoutDTO,
   InstanceModelDTO,
@@ -99,6 +102,15 @@ export class InMemoryInstanceRepository implements InstanceRepository {
     logger.info(`access_key: ${access_key}, status: ${response}`);
 
     return { status: response };
+  }
+  async existsNumber({
+    access_key,
+    phone_number,
+  }: InstanceExistsNumberDTO): Promise<ContactId | null> {
+    const instance = this.findOne({ access_key });
+    if (!instance) throw new Exception(400, "Instance not started");
+
+    return await instance.client.getNumberId(phone_number);
   }
 
   async sendMessage({

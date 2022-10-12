@@ -36,6 +36,13 @@ export interface InstanceStatusDTO {
   access_key: string;
 }
 
+export interface InstanceExistsNumberDTO {
+  access_key: string;
+  phone_number: string;
+}
+export interface InstanceExistsNumberResponseDTO {
+  exists: boolean;
+}
 export interface InstanceSendMessageDTO {
   access_key: string;
   phoneNumber: string;
