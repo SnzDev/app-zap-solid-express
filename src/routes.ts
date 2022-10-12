@@ -3,6 +3,7 @@ import { initializeAllInstancesController } from "./use-cases/initialize-all-ins
 import { getStatusInterfaceController } from "./use-cases/get-status-interface";
 import { initializeInstanceController } from "./use-cases/initialize-instance";
 import { destroyInstanceController } from "./use-cases/destroy-instance";
+import { logoutInstanceController } from "./use-cases/logout-instance";
 
 const companyRoutes = Router();
 
@@ -22,6 +23,10 @@ companyRoutes.get("/init/:access_key", async (request, response) => {
 
 companyRoutes.get("/destroy/:access_key", async (request, response) => {
   await destroyInstanceController.handle(request, response);
+});
+
+companyRoutes.get("/logout/:access_key", async (request, response) => {
+  await logoutInstanceController.handle(request, response);
 });
 
 export { companyRoutes };
