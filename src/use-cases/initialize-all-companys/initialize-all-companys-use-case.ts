@@ -31,25 +31,26 @@ class InitializeAllCompanysUseCase {
         );
       const promise = () =>
         new Promise((resolve) => {
-          instance.client.on("qr", (qr) => {
+          instance.client.once("qr", (qr) => {
             logger.info(
               { access_key: instance.access_key, qr: qr },
               `access_key: ${instance.access_key}, qr: ${qr} `
             );
+            instance.client.removeListener("ready", () => {});
             resolve(qr);
           });
 
-          instance.client.on("ready", () => {
+          instance.client.once("ready", () => {
             logger.info(
               { access_key: instance.access_key, ready: true },
               `access_key: ${instance.access_key}, ready: ${true} `
             );
+            instance.client.removeListener("qr", () => {});
 
             resolve(true);
           });
         });
       await promise();
-      instance.client.removeAllListeners();
     }
   }
 }

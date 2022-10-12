@@ -57,7 +57,11 @@ export class PrismaSendMessageRepository implements SendMessagesRepository {
         },
       })
       .then(() => {})
-      .catch((error) => logger.error(` ShippingHistory: ${error}`));
+      .catch((error) =>
+        logger.error(
+          `ShippingHistory: don't have this message id on database, error: ${error}`
+        )
+      );
   }
 
   async updateResponse({
