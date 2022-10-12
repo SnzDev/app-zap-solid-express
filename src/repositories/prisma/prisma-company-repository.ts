@@ -1,4 +1,4 @@
-import { CompanyRepository } from "../company-repositories";
+import { CompanyRepository } from "../company-repository";
 import { company } from "@prisma/client";
 import { prisma } from "../../prisma";
 import { logger } from "../../logger";

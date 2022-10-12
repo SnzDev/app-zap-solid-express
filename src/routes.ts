@@ -13,20 +13,26 @@ const init = async () => {
 };
 init();
 
-instance.get("/init/:access_key", async (request, response) => {
+instance.get("/:access_key/init", async (request, response) => {
   await initializeInstanceController.handle(request, response);
 });
 
-instance.get("/status/:access_key", async (request, response) => {
+instance.get("/:access_key/status", async (request, response) => {
   await getStatusInterfaceController.handle(request, response);
 });
 
-instance.get("/destroy/:access_key", async (request, response) => {
+instance.get("/:access_key/destroy", async (request, response) => {
   await destroyInstanceController.handle(request, response);
 });
 
-instance.get("/logout/:access_key", async (request, response) => {
+instance.get("/:access_key/logout", async (request, response) => {
   await logoutInstanceController.handle(request, response);
 });
 
+instance.get(
+  "/:access_key/check/contact/:phone_number",
+  async (request, response) => {
+    await logoutInstanceController.handle(request, response);
+  }
+);
 export { instance };
