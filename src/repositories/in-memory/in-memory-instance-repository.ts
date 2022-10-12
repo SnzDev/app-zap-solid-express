@@ -6,7 +6,6 @@ import {
   InstanceCreateDTO,
   InstanceDestroyDTO,
   InstanceFindOneDTO,
-  InstanceInitDTO,
   InstanceLogoutDTO,
   InstanceModelDTO,
   InstanceSendMessageDTO,
@@ -23,9 +22,7 @@ export class InMemoryInstanceRepository implements InstanceRepository {
   constructor() {
     this.instanceRepository = [];
   }
-  init(props: InstanceInitDTO): void {
-    throw new Error("Method not implemented.");
-  }
+
   public static getInstance() {
     if (!InMemoryInstanceRepository.INSTANCE) {
       InMemoryInstanceRepository.INSTANCE = new InMemoryInstanceRepository();
@@ -33,11 +30,25 @@ export class InMemoryInstanceRepository implements InstanceRepository {
 
     return InMemoryInstanceRepository.INSTANCE;
   }
-  create({ access_key }: InstanceCreateDTO): void {
+  async create({
+    access_key,
+  }: InstanceCreateDTO): Promise<InstanceModelDTO | undefined> {
+    const instanceExists = this.findOne({ access_key });
+    //IF EXISTS INSTANCE, DESTROY IT
+    if (instanceExists) {
+      await this.destroy({ access_key });
+      const index = this.instanceRepository.indexOf(instanceExists);
+      return (this.instanceRepository[index] = {
+        access_key,
+        client: ModelInstance(access_key),
+      });
+    }
+    //IF NOT EXISTS INSTANCE PUSH A NEW
     this.instanceRepository.push({
       access_key,
       client: ModelInstance(access_key),
     });
+    return this.findOne({ access_key });
   }
 
   findAll(): InstanceModelDTO[] {
@@ -55,7 +66,7 @@ export class InMemoryInstanceRepository implements InstanceRepository {
     if (!instance) return;
     await instance.client
       .destroy()
-      .then()
+      .then(() => logger.info(`access_key: ${access_key}, destroyed session`))
       .catch((error) =>
         logger.info(`access_key: ${access_key}, error: ${error}`)
       );
@@ -66,7 +77,7 @@ export class InMemoryInstanceRepository implements InstanceRepository {
     if (!instance) return;
     await instance.client
       .logout()
-      .then()
+      .then(() => logger.info(`access_key: ${access_key}, logout session`))
       .catch((error) =>
         logger.info(`access_key: ${access_key}, error: ${error}`)
       );
@@ -77,15 +88,15 @@ export class InMemoryInstanceRepository implements InstanceRepository {
   }: InstanceStatusDTO): Promise<InstanceStatusResponseDTO> {
     const instance = this.findOne({ access_key });
 
-    if (!instance) return { status: "NOT_FOUND" };
+    //IF DOESN'T HAVE INSTANCE CREATED RETURN NOT_STARTED
+    if (!instance) return { status: "NOT_STARTED" };
+
     const response = await instance.client
       .getState()
-      .then((response) => response)
-      .catch((error) =>
-        logger.info(`access_key: ${access_key}, error: ${error}`)
-      );
+      .then((response) => response ?? "ON_RUNNING")
+      .catch((error): "NOT_STARTED" => "NOT_STARTED");
 
-    if (!response) return { status: "NOT_STARTED" };
+    logger.info(`access_key: ${access_key}, status: ${response}`);
 
     return { status: response };
   }

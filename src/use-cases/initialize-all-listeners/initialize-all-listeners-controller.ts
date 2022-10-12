@@ -1,6 +1,6 @@
 import { InitializeAllListenersUseCase } from "./initialize-all-listeners-use-case";
 
-export class InitializeAllListenerController {
+export class InitializeAllListenersController {
   constructor(
     private initializeAllListenersUseCase: InitializeAllListenersUseCase
   ) {}

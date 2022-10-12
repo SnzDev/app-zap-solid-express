@@ -2,7 +2,6 @@ import {
   InstanceCreateDTO,
   InstanceDestroyDTO,
   InstanceFindOneDTO,
-  InstanceInitDTO,
   InstanceLogoutDTO,
   InstanceModelDTO,
   InstanceSendMessageDTO,
@@ -13,8 +12,7 @@ import {
 } from "./types/instance-dto";
 
 export interface InstanceRepository {
-  create(props: InstanceCreateDTO): void;
-  init(props: InstanceInitDTO): void;
+  create(props: InstanceCreateDTO): Promise<InstanceModelDTO | undefined>;
   findAll(): InstanceModelDTO[];
   findOne(props: InstanceFindOneDTO): InstanceModelDTO | undefined;
   destroy(props: InstanceDestroyDTO): Promise<void>;

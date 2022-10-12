@@ -9,10 +9,6 @@ export interface InstanceModelDTO {
   client: Client;
 }
 
-export interface InstanceInitDTO {
-  access_key: string;
-}
-
 export interface InstanceFindOneDTO {
   access_key: string;
 }

@@ -2,24 +2,31 @@ import { logger } from "../../logger";
 import { InMemoryInstanceRepository } from "../../repositories/in-memory/in-memory-instance-repository";
 import { PrismaCompanyRepository } from "../../repositories/prisma/prisma-company-repository";
 
-class InitializeAllCompanysUseCase {
+export class InitializeInstanceUseCase {
   constructor(
-    private prismaCompanyRepository?: PrismaCompanyRepository,
-    private inMemoryInstanceRepository?: InMemoryInstanceRepository
+    private inMemoryInstanceRepository: InMemoryInstanceRepository,
+    private prismaCompanyRepository: PrismaCompanyRepository
   ) {}
 
-  async execute() {
-    const companys = await this.prismaCompanyRepository?.findAll();
-    companys?.forEach((company) => {
-      this.inMemoryInstanceRepository?.create({
-        access_key: company.access_key,
-      });
+  async execute(access_key: string) {
+    const company = await this.prismaCompanyRepository.findByAccessKey(
+      access_key
+    );
+    //IF DOESN'T HAVE A COMPANY WITH THE ACCESS KEY JUST RETURN VOID
+    if (!company) return false;
+
+    const instanceStatus = await this.inMemoryInstanceRepository.status({
+      access_key,
     });
 
-    const instances = this.inMemoryInstanceRepository?.findAll();
-    if (!instances) return;
+    //IF DOESN'T HAVE INSTANCE CREATED
+    if (instanceStatus.status === "NOT_STARTED") {
+      const instance = await this.inMemoryInstanceRepository.create({
+        access_key,
+      });
 
-    for (const instance of instances) {
+      if (!instance) return false;
+
       instance.client
         .initialize()
         .then()
@@ -36,7 +43,6 @@ class InitializeAllCompanysUseCase {
               { access_key: instance.access_key, qr: qr },
               `access_key: ${instance.access_key}, qr: ${qr} `
             );
-            instance.client.removeListener("ready", () => {});
             resolve(qr);
           });
 
@@ -45,14 +51,14 @@ class InitializeAllCompanysUseCase {
               { access_key: instance.access_key, ready: true },
               `access_key: ${instance.access_key}, ready: ${true} `
             );
-            instance.client.removeListener("qr", () => {});
 
             resolve(true);
           });
         });
       await promise();
+      instance.client.removeAllListeners();
+
+      return true;
     }
   }
 }
-
-export { InitializeAllCompanysUseCase };
