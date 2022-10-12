@@ -1,3 +1,4 @@
+import { Exception } from "../../error";
 import { logger } from "../../logger";
 import { InMemoryInstanceRepository } from "../../repositories/in-memory/in-memory-instance-repository";
 import { PrismaCompanyRepository } from "../../repositories/prisma/prisma-company-repository";
@@ -14,7 +15,11 @@ export class InitializeListenerUseCase {
 
   execute(access_key: string) {
     const instance = this.inMemoryInstanceRepository.findOne({ access_key });
-    if (!instance) return;
+    if (!instance)
+      throw new Exception(
+        400,
+        "Not initialized listener because instance not started"
+      );
 
     instance.client.on("qr", (qr) => {
       logger.info(`access_key: ${instance.access_key}, qr: ${qr}`);

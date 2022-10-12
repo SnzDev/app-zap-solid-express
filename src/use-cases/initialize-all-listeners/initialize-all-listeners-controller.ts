@@ -1,3 +1,4 @@
+import { logger } from "../../logger";
 import { InitializeAllListenersUseCase } from "./initialize-all-listeners-use-case";
 
 export class InitializeAllListenersController {
@@ -6,6 +7,10 @@ export class InitializeAllListenersController {
   ) {}
 
   async handle() {
-    this.initializeAllListenersUseCase.execute();
+    try {
+      this.initializeAllListenersUseCase.execute();
+    } catch (error: any) {
+      logger.error(error);
+    }
   }
 }

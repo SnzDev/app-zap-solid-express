@@ -1,3 +1,4 @@
+import { Exception } from "../../error";
 import { logger } from "../../logger";
 import { InMemoryInstanceRepository } from "../../repositories/in-memory/in-memory-instance-repository";
 import { PrismaCompanyRepository } from "../../repositories/prisma/prisma-company-repository";
@@ -12,8 +13,7 @@ export class InitializeInstanceUseCase {
     const company = await this.prismaCompanyRepository.findByAccessKey(
       access_key
     );
-    //IF DOESN'T HAVE A COMPANY WITH THE ACCESS KEY JUST RETURN VOID
-    if (!company) return false;
+    if (!company) throw new Exception(400, "Don't exists this access_key");
 
     const instanceStatus = await this.inMemoryInstanceRepository.status({
       access_key,
@@ -25,7 +25,7 @@ export class InitializeInstanceUseCase {
         access_key,
       });
 
-      if (!instance) return false;
+      if (!instance) throw new Exception(400, "Not created!");
 
       instance.client
         .initialize()
@@ -57,8 +57,6 @@ export class InitializeInstanceUseCase {
         });
       await promise();
       instance.client.removeAllListeners();
-
-      return true;
     }
   }
 }
