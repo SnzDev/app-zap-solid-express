@@ -20,43 +20,44 @@ export class InitializeInstanceUseCase {
     });
 
     //IF DOESN'T HAVE INSTANCE CREATED
-    if (instanceStatus.status === "NOT_STARTED") {
-      const instance = await this.inMemoryInstanceRepository.create({
-        access_key,
-      });
+    if (instanceStatus.status !== "NOT_STARTED")
+      throw new Exception(400, "Already started");
 
-      if (!instance) throw new Exception(400, "Not created!");
+    const instance = await this.inMemoryInstanceRepository.create({
+      access_key,
+    });
 
-      instance.client
-        .initialize()
-        .then()
-        .catch((error) =>
-          logger.error(
-            { access_key: instance.access_key, error },
-            `access_key: ${instance.access_key}, error: ${error}`
-          )
-        );
-      const promise = () =>
-        new Promise((resolve) => {
-          instance.client.once("qr", (qr) => {
-            logger.info(
-              { access_key: instance.access_key, qr: qr },
-              `access_key: ${instance.access_key}, qr: ${qr} `
-            );
-            resolve(qr);
-          });
+    if (!instance) throw new Exception(400, "Not created!");
 
-          instance.client.once("ready", () => {
-            logger.info(
-              { access_key: instance.access_key, ready: true },
-              `access_key: ${instance.access_key}, ready: ${true} `
-            );
-
-            resolve(true);
-          });
+    instance.client
+      .initialize()
+      .then()
+      .catch((error) =>
+        logger.error(
+          { access_key: instance.access_key, error },
+          `access_key: ${instance.access_key}, error: ${error}`
+        )
+      );
+    const promise = () =>
+      new Promise((resolve) => {
+        instance.client.once("qr", (qr) => {
+          logger.info(
+            { access_key: instance.access_key, qr: qr },
+            `access_key: ${instance.access_key}, qr: ${qr} `
+          );
+          resolve(qr);
         });
-      await promise();
-      instance.client.removeAllListeners();
-    }
+
+        instance.client.once("ready", () => {
+          logger.info(
+            { access_key: instance.access_key, ready: true },
+            `access_key: ${instance.access_key}, ready: ${true} `
+          );
+
+          resolve(true);
+        });
+      });
+    await promise();
+    instance.client.removeAllListeners();
   }
 }

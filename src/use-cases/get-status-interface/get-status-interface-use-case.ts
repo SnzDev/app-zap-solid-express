@@ -9,9 +9,9 @@ class GetStatusInterfaceUseCase {
   ) {}
 
   async execute(access_key: string) {
-    const company = await this.prismaCompanyRepository.findByAccessKey(
-      access_key
-    );
+    const company = await this.prismaCompanyRepository.findByAccessKey({
+      access_key,
+    });
     if (!company) throw new Exception(400, "Don't exists this access_key");
     return await this.inMemoryInstanceRepository.status({ access_key });
   }

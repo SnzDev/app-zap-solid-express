@@ -14,8 +14,8 @@ export class CheckNumberExistsUseCase {
   ) {}
 
   async execute({ access_key, phone_number }: CheckNumberExistsUseCaseDTO) {
-    if (phone_number.length !== 12)
-      throw new Exception(400, "Phone numer needs lenght 12");
+    // if (phone_number.length !== 12)
+    //   throw new Exception(400, "Phone numer needs lenght 12");
 
     const existsCompany = await this.prismaCompanyRepository.findByAccessKey(
       access_key

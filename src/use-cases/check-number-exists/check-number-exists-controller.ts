@@ -6,7 +6,11 @@ export class CheckNumberExistsController {
   async handle(request: Request, response: Response) {
     const { phone_number, access_key } = request.params;
     try {
-      await this.checkNumberExistsUseCase.execute({ access_key, phone_number });
+      const exists = await this.checkNumberExistsUseCase.execute({
+        access_key,
+        phone_number,
+      });
+      return response.json({ exists: exists ?? false });
     } catch (error: any) {
       return response
         .status(error.getStatusCode())

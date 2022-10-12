@@ -9,7 +9,7 @@ export class InitializeInstanceController {
 
     try {
       await this.initializeInstanceUseCase.execute(access_key);
-      await initializeListenerController.handle(request);
+      initializeListenerController.handle(request);
 
       return response.status(201).send();
     } catch (error: any) {

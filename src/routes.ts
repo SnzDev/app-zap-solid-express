@@ -4,6 +4,7 @@ import { getStatusInterfaceController } from "./use-cases/get-status-interface";
 import { initializeInstanceController } from "./use-cases/initialize-instance";
 import { destroyInstanceController } from "./use-cases/destroy-instance";
 import { logoutInstanceController } from "./use-cases/logout-instance";
+import { checkNumberExistsController } from "./use-cases/check-number-exists";
 
 const instance = Router();
 
@@ -13,7 +14,7 @@ const init = async () => {
 };
 init();
 
-instance.get("/:access_key/init", async (request, response) => {
+instance.post("/:access_key/init", async (request, response) => {
   await initializeInstanceController.handle(request, response);
 });
 
@@ -21,18 +22,18 @@ instance.get("/:access_key/status", async (request, response) => {
   await getStatusInterfaceController.handle(request, response);
 });
 
-instance.get("/:access_key/destroy", async (request, response) => {
+instance.post("/:access_key/destroy", async (request, response) => {
   await destroyInstanceController.handle(request, response);
 });
 
-instance.get("/:access_key/logout", async (request, response) => {
+instance.post("/:access_key/logout", async (request, response) => {
   await logoutInstanceController.handle(request, response);
 });
 
 instance.get(
   "/:access_key/check/contact/:phone_number",
   async (request, response) => {
-    await logoutInstanceController.handle(request, response);
+    await checkNumberExistsController.handle(request, response);
   }
 );
 export { instance };

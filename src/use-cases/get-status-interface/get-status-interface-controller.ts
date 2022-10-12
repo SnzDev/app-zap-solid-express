@@ -6,7 +6,8 @@ export class GetStatusInterfaceController {
   async handle(request: Request, response: Response) {
     const { access_key } = request.params;
     try {
-      await this.getStatusInterfaceUseCase.execute(access_key);
+      const status = await this.getStatusInterfaceUseCase.execute(access_key);
+      return response.json(status);
     } catch (error: any) {
       return response
         .status(error.getStatusCode())
