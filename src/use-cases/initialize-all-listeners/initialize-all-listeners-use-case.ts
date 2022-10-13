@@ -1,7 +1,7 @@
 import { logger } from "../../logger";
 import { InMemoryInstanceRepository } from "../../repositories/in-memory/in-memory-instance-repository";
 import { PrismaCompanyRepository } from "../../repositories/prisma/prisma-company-repository";
-import { PrismaSendMessageRepository } from "../../repositories/prisma/prisma-send-message-repository";
+import { PrismaSendMessagesRepository } from "../../repositories/prisma/prisma-send-message-repository";
 import { WebSocket } from "../../websocket";
 import { InitializeListenerUseCase } from "../initialize-listener/initialize-listener-use-case";
 

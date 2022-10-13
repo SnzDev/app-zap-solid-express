@@ -23,9 +23,27 @@ model send_messages_api {
   second_option String?
   second_answer String?
   response      String?
+  timestamp     Int
   created_at    DateTime @default(now())
   updated_at    DateTime @updatedAt
 }
+
+model receive_messages_api {
+  id    String @id @default(uuid())
+  company       company  @relation(fields:[access_key], references:[access_key])
+  access_key    String
+  from          String
+  to            String
+  message_id    String
+  message_body  String
+  device_type   String
+  has_media     Boolean
+  file_url      String?
+  timestamp     Int
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+}
+
 
 model company {
   id             BigInt                  @id @default(autoincrement()) @db.UnsignedBigInt
@@ -40,7 +58,8 @@ model company {
   id_external    String?                 @db.VarChar(255)
   url_line       String?                 @db.VarChar(255)
 
-  send_messages_api send_messages_api[]
+  send_messages_api send_messages_api []
+  recieve_messages_api receive_messages_api []
 }
 
 model clients {

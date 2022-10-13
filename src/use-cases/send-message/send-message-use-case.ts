@@ -1,6 +1,6 @@
 import { Exception } from "../../error";
 import { InMemoryInstanceRepository } from "../../repositories/in-memory/in-memory-instance-repository";
-import { PrismaSendMessageRepository } from "../../repositories/prisma/prisma-send-message-repository";
+import { PrismaSendMessagesRepository } from "../../repositories/prisma/prisma-send-message-repository";
 
 interface SendMessageUseCaseDTO {
   phone_number: string;
@@ -12,7 +12,7 @@ interface SendMessageUseCaseDTO {
 export class SendMessageUsecase {
   constructor(
     private inMemoryInstanceRepository: InMemoryInstanceRepository,
-    private prismaSendMessageRepository: PrismaSendMessageRepository
+    private PrismaSendMessagesRepository: PrismaSendMessagesRepository
   ) {}
 
   async execute({
@@ -34,7 +34,7 @@ export class SendMessageUsecase {
       file_url,
     });
 
-    const response = await this.prismaSendMessageRepository.create({
+    const response = await this.PrismaSendMessagesRepository.create({
       access_key,
       file_url,
       message_body: sendMessage.message.body,

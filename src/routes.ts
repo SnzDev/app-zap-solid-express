@@ -41,4 +41,5 @@ instance.get(
 instance.post("/:access_key/send/message", async (request, response) => {
   await sendMessageController.handle(request, response);
 });
+
 export { instance };

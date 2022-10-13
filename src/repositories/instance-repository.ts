@@ -8,7 +8,6 @@ import {
   InstanceLogoutDTO,
   InstanceModelDTO,
   InstanceSendMessageDTO,
-  InstanceSendMessageResponseDTO,
   InstanceSendSurveyDTO,
   InstanceStatusDTO,
   InstanceStatusResponseDTO,
@@ -21,9 +20,7 @@ export interface InstanceRepository {
   destroy(props: InstanceDestroyDTO): Promise<void>;
   logout(props: InstanceLogoutDTO): void;
   status(props: InstanceStatusDTO): Promise<InstanceStatusResponseDTO>;
-  existsNumber(
-    props: InstanceExistsNumberDTO
-  ): Promise<ContactId | null>;
+  existsNumber(props: InstanceExistsNumberDTO): Promise<ContactId | null>;
   // sendMessage(
   //   props: InstanceSendMessageDTO
   // ): Promise<InstanceSendMessageResponseDTO>;

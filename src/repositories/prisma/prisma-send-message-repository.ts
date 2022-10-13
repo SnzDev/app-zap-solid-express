@@ -8,11 +8,11 @@ import {
 import { prisma } from "../../prisma";
 import { logger } from "../../logger";
 
-export class PrismaSendMessageRepository implements SendMessagesRepository {
-  sendMessage = prisma.send_messages_api;
+export class PrismaSendMessagesRepository implements SendMessagesRepository {
+  sendMessages = prisma.send_messages_api;
 
   async create(props: SendMessageCreateDTO): Promise<send_messages_api | void> {
-    const response = await this.sendMessage
+    const response = await this.sendMessages
       .create({ data: { ...props } })
       .then((response) => response)
       .catch((error) => {
@@ -23,7 +23,7 @@ export class PrismaSendMessageRepository implements SendMessagesRepository {
   }
 
   async findByProtocol(protocol: string): Promise<send_messages_api | null> {
-    return await this.sendMessage
+    return await this.sendMessages
       .findFirst({
         where: {
           id: protocol,
@@ -37,7 +37,7 @@ export class PrismaSendMessageRepository implements SendMessagesRepository {
   }
 
   async findByIdMessage(message_id: string): Promise<send_messages_api | null> {
-    return await this.sendMessage
+    return await this.sendMessages
       .findFirst({
         where: {
           message_id,
@@ -54,7 +54,7 @@ export class PrismaSendMessageRepository implements SendMessagesRepository {
     const message = await this.findByIdMessage(protocol);
     if (!message) return;
 
-    return await this.sendMessage
+    return await this.sendMessages
       .update({
         where: {
           id: message.id,
@@ -78,7 +78,7 @@ export class PrismaSendMessageRepository implements SendMessagesRepository {
     const message = await this.findByIdMessage(protocol);
     if (!message) return;
 
-    return await this.sendMessage
+    return await this.sendMessages
       .update({
         where: {
           id: message.id,
