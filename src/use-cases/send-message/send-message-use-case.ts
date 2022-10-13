@@ -27,21 +27,23 @@ export class SendMessageUsecase {
     });
     if (!existsNumber) throw new Exception(400, "This number not exists!");
 
-    const sendMessage = await this.inMemoryInstanceRepository.sendMessage({
-      access_key,
-      message,
-      phone_number: existsNumber._serialized,
-      file_url,
-    });
+    const { message: sendMessage } =
+      await this.inMemoryInstanceRepository.sendMessage({
+        access_key,
+        message,
+        phone_number: existsNumber._serialized,
+        file_url,
+      });
 
     const response = await this.PrismaSendMessagesRepository.create({
       access_key,
       file_url,
-      message_body: sendMessage.message.body,
-      ack: sendMessage.message.ack,
-      destiny: sendMessage.message.to,
-      message_id: sendMessage.message.id.id,
-      sender: sendMessage.message.from,
+      message_body: sendMessage.body,
+      ack: sendMessage.ack,
+      destiny: sendMessage.to,
+      message_id: sendMessage.id.id,
+      sender: sendMessage.from,
+      timestamp: sendMessage.timestamp,
     });
     if (!response) throw new Exception(400, "Cannot register on database");
     return response;

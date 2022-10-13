@@ -42,6 +42,27 @@ export class InitializeListenerUseCase {
       this.webSocket.sendConnected({ access_key: instance.access_key });
     });
 
+    instance.client.on("message_create", async (msg) => {
+      const messageId = await this.PrismaSendMessagesRepository.findByIdMessage(
+        msg.id.id
+      );
+      if (messageId) return;
+
+      await this.PrismaSendMessagesRepository.create({
+        access_key,
+        message_body: msg.body,
+        ack: msg.ack,
+        destiny: msg.to,
+        message_id: msg.id.id,
+        sender: msg.from,
+        timestamp: msg.timestamp,
+      });
+
+      logger.info(
+        `access_key: ${instance.access_key}, Message outside startmessage!`
+      );
+    });
+
     instance.client.on("message", async (msg) => {
       const {
         isStatus,
@@ -102,8 +123,14 @@ export class InitializeListenerUseCase {
       });
       const sendMessage =
         await this.PrismaSendMessagesRepository.findByIdMessage(msg.id.id);
-
       if (!sendMessage) return;
+
+      const isStartmessage =
+        await this.PrismaShippingHistoryRepository.findByProtocol(
+          sendMessage.id
+        );
+
+      if (!isStartmessage) return;
 
       await this.PrismaShippingHistoryRepository.updateAck({
         ack: msg.ack,
