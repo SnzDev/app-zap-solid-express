@@ -2,7 +2,7 @@ import { Exception } from "../../error";
 import { InMemoryInstanceRepository } from "../../repositories/in-memory/in-memory-instance-repository";
 import { PrismaCompanyRepository } from "../../repositories/prisma/prisma-company-repository";
 
-class GetStatusInterfaceUseCase {
+class GetStatusInstanceUseCase {
   constructor(
     private inMemoryInstanceRepository: InMemoryInstanceRepository,
     private prismaCompanyRepository: PrismaCompanyRepository
@@ -17,4 +17,4 @@ class GetStatusInterfaceUseCase {
   }
 }
 
-export { GetStatusInterfaceUseCase };
+export { GetStatusInstanceUseCase };

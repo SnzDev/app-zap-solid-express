@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { initializeAllInstancesController } from "./use-cases/initialize-all-instances";
-import { getStatusInterfaceController } from "./use-cases/get-status-interface";
+import { getStatusInstanceController } from "./use-cases/get-status-instance";
 import { initializeInstanceController } from "./use-cases/initialize-instance";
 import { destroyInstanceController } from "./use-cases/destroy-instance";
 import { logoutInstanceController } from "./use-cases/logout-instance";
@@ -20,7 +20,7 @@ instance.post("/:access_key/init", async (request, response) => {
 });
 
 instance.get("/:access_key/status", async (request, response) => {
-  await getStatusInterfaceController.handle(request, response);
+  await getStatusInstanceController.handle(request, response);
 });
 
 instance.post("/:access_key/destroy", async (request, response) => {
