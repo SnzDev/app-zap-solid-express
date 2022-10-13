@@ -53,6 +53,13 @@ export interface InstanceSendMessageResponse {
   message: WAWebJS.Message;
 }
 
+export interface SendOneMessageDTO {
+  client: Client;
+  chatId: string;
+  body: WAWebJS.MessageContent;
+  options: WAWebJS.MessageSendOptions | undefined;
+}
+
 export interface InstanceSendSurveyDTO {
   access_key: string;
   phoneNumber: string;

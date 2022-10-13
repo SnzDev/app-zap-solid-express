@@ -42,73 +42,62 @@ export class InitializeListenerUseCase {
       this.webSocket.sendConnected({ access_key: instance.access_key });
     });
 
-    instance.client.on("message_create", async (msg) => {
-      const messageId = await this.PrismaSendMessagesRepository.findByIdMessage(
-        msg.id.id
-      );
-      if (messageId) return;
+    // instance.client.on("message_create", async (msg) => {
+    //   const messageId = await this.PrismaSendMessagesRepository.findByIdMessage(
+    //     msg.id.id
+    //   );
+    //   if (messageId || msg.isStatus) return;
 
-      await this.PrismaSendMessagesRepository.create({
-        access_key,
-        message_body: msg.body,
-        ack: msg.ack,
-        destiny: msg.to,
-        message_id: msg.id.id,
-        sender: msg.from,
-        timestamp: msg.timestamp,
-      });
+    //   await this.PrismaSendMessagesRepository.create({
+    //     access_key,
+    //     message_body: msg.body,
+    //     ack: msg.ack,
+    //     destiny: msg.to,
+    //     message_id: msg.id.id,
+    //     sender: msg.from,
+    //     timestamp: msg.timestamp,
+    //   });
 
-      logger.info(
-        `access_key: ${instance.access_key}, Message outside startmessage!`
-      );
-    });
+    //   logger.info(
+    //     `access_key: ${instance.access_key}, Message outside startmessage!`
+    //   );
+    // });
 
     instance.client.on("message", async (msg) => {
-      const {
-        isStatus,
-        from,
-        deviceType: device_type,
-        hasMedia: has_media,
-        body: message_body,
-        timestamp,
-        to,
-      } = msg;
       let file_url;
-      const message_id = msg.id.id;
-      const access_key = instance.access_key;
 
       //RETURN IF IT'S FROM STATUS
       //RETURN IF IT'S FROM GROUP
-      if (isStatus || from.includes("@g.us")) return;
+      if (msg.isStatus || msg.from.includes("@g.us")) return;
 
-      if (has_media) {
+      if (msg.hasMedia) {
         const media = await msg.downloadMedia();
         if (media) {
           const format = mime.extension(media.mimetype);
           try {
             fs.writeFileSync(
-              `./public/${access_key}/${timestamp}-${message_id}.${format}`,
+              `./public/${access_key}/${msg.timestamp}-${msg.id.id}.${format}`,
               media.data,
               { encoding: "base64" }
             );
-            file_url = `./public/${access_key}/${timestamp}-${message_id}.${format}`;
+            file_url = `./public/${access_key}/${msg.timestamp}-${msg.id.id}.${format}`;
           } catch (e) {
             logger.error(`DownloadMedia: ${e}`);
           }
         }
       }
 
-      logger.info(`access_key: ${instance.access_key}, message: ${from}`);
+      logger.info(`access_key: ${instance.access_key}, message: ${msg.from}`);
       await this.receiveMessageUseCase.execute({
         access_key,
-        device_type,
-        from,
-        has_media,
+        device_type: msg.deviceType,
+        from: msg.from,
+        has_media: msg.hasMedia,
         file_url,
-        message_body,
-        message_id,
-        timestamp,
-        to,
+        message_body: msg.body,
+        message_id: msg.id.id,
+        timestamp: msg.timestamp,
+        to: msg.to,
       });
     });
 

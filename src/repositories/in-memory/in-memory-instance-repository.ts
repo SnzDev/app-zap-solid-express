@@ -7,15 +7,13 @@ import {
   InstanceCreateDTO,
   InstanceDestroyDTO,
   InstanceExistsNumberDTO,
-  InstanceExistsNumberResponseDTO,
   InstanceFindOneDTO,
   InstanceLogoutDTO,
   InstanceModelDTO,
   InstanceSendMessageDTO,
-  InstanceSendMessageResponseDTO,
-  InstanceSendSurveyDTO,
   InstanceStatusDTO,
   InstanceStatusResponseDTO,
+  SendOneMessageDTO,
 } from "../types/instance-dto";
 
 export class InMemoryInstanceRepository implements InstanceRepository {
@@ -121,8 +119,8 @@ export class InMemoryInstanceRepository implements InstanceRepository {
 
   async sendMessage({
     access_key,
-    phone_number,
     message,
+    phone_number,
     file_url,
   }: InstanceSendMessageDTO): Promise<{
     message: WAWebJS.Message;
@@ -158,5 +156,20 @@ export class InMemoryInstanceRepository implements InstanceRepository {
     });
     if (!sendMessage) throw new Exception(400, "Message cannot be send!");
     return { message: sendMessage };
+  }
+
+  async sendOneMessage({
+    body,
+    client,
+    options,
+    chatId,
+  }: SendOneMessageDTO): Promise<WAWebJS.Message | void> {
+    logger.info(`SendMessage: ${chatId}`);
+    return await client
+      .sendMessage(chatId, body, options)
+      .then((response) => response)
+      .catch((error) => {
+        logger.error(`SendMessage: ${error}`);
+      });
   }
 }

@@ -17,7 +17,7 @@ model send_messages_api {
   message_body  String
   sender        String
   destiny       String
-  is_survey     Boolean?
+  is_survey     Boolean? @default(false)
   first_option  String?
   first_answer  String?
   second_option String?

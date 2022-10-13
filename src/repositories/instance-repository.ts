@@ -1,4 +1,4 @@
-import { ContactId } from "whatsapp-web.js";
+import WAWebJS, { ContactId } from "whatsapp-web.js";
 import {
   InstanceCreateDTO,
   InstanceDestroyDTO,
@@ -11,6 +11,7 @@ import {
   InstanceSendSurveyDTO,
   InstanceStatusDTO,
   InstanceStatusResponseDTO,
+  SendOneMessageDTO,
 } from "./types/instance-dto";
 
 export interface InstanceRepository {
@@ -21,10 +22,8 @@ export interface InstanceRepository {
   logout(props: InstanceLogoutDTO): void;
   status(props: InstanceStatusDTO): Promise<InstanceStatusResponseDTO>;
   existsNumber(props: InstanceExistsNumberDTO): Promise<ContactId | null>;
-  // sendMessage(
-  //   props: InstanceSendMessageDTO
-  // ): Promise<InstanceSendMessageResponseDTO>;
-  // sendSurvey(
-  //   props: InstanceSendSurveyDTO
-  // ): Promise<InstanceSendSurveyResponseDTO>;
+  sendMessage(props: InstanceSendMessageDTO): Promise<{
+    message: WAWebJS.Message;
+  }>;
+  sendOneMessage(props: SendOneMessageDTO): Promise<WAWebJS.Message | void>;
 }

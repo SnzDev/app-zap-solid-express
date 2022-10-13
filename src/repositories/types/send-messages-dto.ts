@@ -17,4 +17,9 @@ export interface SendMessageCreateDTO {
   sender: string;
   destiny: string;
   timestamp: number;
+  is_survey?: boolean;
+  first_option?: string;
+  first_answer?: string;
+  second_option?: string;
+  second_answer?: string;
 }
