@@ -1,4 +1,4 @@
-import { ContactId, MessageMedia } from "whatsapp-web.js";
+import WAWebJS, { ContactId, MessageMedia } from "whatsapp-web.js";
 import { logger } from "../../logger";
 import { ModelInstance } from "../../model/model-instance";
 import { Exception } from "../../error";
@@ -110,40 +110,53 @@ export class InMemoryInstanceRepository implements InstanceRepository {
     const instance = this.findOne({ access_key });
     if (!instance) throw new Exception(400, "Instance not started");
 
-    return await instance.client.getNumberId(phone_number);
+    return await instance.client
+      .getNumberId(phone_number)
+      .then((response) => response)
+      .catch((error) => {
+        logger.info(`access_key: ${access_key}, error: ${error}`);
+        return null;
+      });
   }
 
   async sendMessage({
     access_key,
-    phoneNumber,
+    phone_number,
     message,
-    imageUrl,
-  }: InstanceSendMessageDTO): Promise<InstanceSendMessageResponseDTO> {
+    file_url,
+  }: InstanceSendMessageDTO): Promise<{
+    message: WAWebJS.Message;
+  }> {
+    const instanceStatus = await this.status({ access_key });
     const instance = await this.findOne({ access_key });
-    if (!instance) return { status: "NOT_SEND" };
 
-    if (!imageUrl) {
+    if (instanceStatus.status !== "CONNECTED" || !instance)
+      throw new Exception(400, "Instance not started");
+
+    if (!file_url) {
       const sendMessage = await instance.client
-        .sendMessage(phoneNumber, message)
+        .sendMessage(phone_number, message)
         .then((response) => response)
         .catch((error) =>
           logger.info(`access_key: ${access_key}, error: ${error}`)
         );
+      if (!sendMessage) throw new Exception(400, "Message cannot be send!");
 
-      return { status: !!sendMessage, message: sendMessage };
+      return { message: sendMessage };
     }
 
-    const media = await MessageMedia.fromUrl(imageUrl)
+    const media = await MessageMedia.fromUrl(file_url)
       .then((response) => response)
       .catch((error) =>
         logger.error(`access_key: ${access_key}, error: ${error}`)
       );
 
-    if (!media) return { status: false, message: null };
-    const sendMessage = await instance.client.sendMessage(phoneNumber, media, {
+    if (!media) throw new Exception(400, "Cannot use this image url");
+
+    const sendMessage = await instance.client.sendMessage(phone_number, media, {
       caption: message,
     });
-
-    return { status: !!sendMessage, message: sendMessage };
+    if (!sendMessage) throw new Exception(400, "Message cannot be send!");
+    return { message: sendMessage };
   }
 }

@@ -5,6 +5,7 @@ import { initializeInstanceController } from "./use-cases/initialize-instance";
 import { destroyInstanceController } from "./use-cases/destroy-instance";
 import { logoutInstanceController } from "./use-cases/logout-instance";
 import { checkNumberExistsController } from "./use-cases/check-number-exists";
+import { sendMessageController } from "./use-cases/send-message";
 
 const instance = Router();
 
@@ -36,4 +37,8 @@ instance.get(
     await checkNumberExistsController.handle(request, response);
   }
 );
+
+instance.post("/:access_key/send/message", async (request, response) => {
+  await sendMessageController.handle(request, response);
+});
 export { instance };

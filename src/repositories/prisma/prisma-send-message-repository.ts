@@ -11,9 +11,16 @@ import { logger } from "../../logger";
 export class PrismaSendMessageRepository implements SendMessagesRepository {
   sendMessage = prisma.send_messages_api;
 
-  //   create(props: SendMessageCreateDTO): Promise<send_messages_api> {
+  async create(props: SendMessageCreateDTO): Promise<send_messages_api | void> {
+    const response = await this.sendMessage
+      .create({ data: { ...props } })
+      .then((response) => response)
+      .catch((error) => {
+        logger.error(`SendMessageRepository: ${error}`);
+      });
 
-  //   }
+    return response;
+  }
 
   async findByProtocol(protocol: string): Promise<send_messages_api | null> {
     return await this.sendMessage
@@ -24,7 +31,7 @@ export class PrismaSendMessageRepository implements SendMessagesRepository {
       })
       .then((response) => response)
       .catch((error) => {
-        logger.error(` SendMessageRepository: ${error}`);
+        logger.error(`SendMessageRepository: ${error}`);
         return null;
       });
   }
@@ -38,7 +45,7 @@ export class PrismaSendMessageRepository implements SendMessagesRepository {
       })
       .then((response) => response)
       .catch((error) => {
-        logger.error(` SendMessageRepository: ${error}`);
+        logger.error(`SendMessageRepository: ${error}`);
         return null;
       });
   }
@@ -81,6 +88,6 @@ export class PrismaSendMessageRepository implements SendMessagesRepository {
         },
       })
       .then(() => {})
-      .catch((error) => logger.error(` ShippingHistory: ${error}`));
+      .catch((error) => logger.error(`ShippingHistory: ${error}`));
   }
 }

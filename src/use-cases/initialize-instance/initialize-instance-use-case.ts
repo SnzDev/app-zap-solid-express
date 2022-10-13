@@ -10,9 +10,9 @@ export class InitializeInstanceUseCase {
   ) {}
 
   async execute(access_key: string) {
-    const company = await this.prismaCompanyRepository.findByAccessKey(
-      access_key
-    );
+    const company = await this.prismaCompanyRepository.findByAccessKey({
+      access_key,
+    });
     if (!company) throw new Exception(400, "Don't exists this access_key");
 
     const instanceStatus = await this.inMemoryInstanceRepository.status({

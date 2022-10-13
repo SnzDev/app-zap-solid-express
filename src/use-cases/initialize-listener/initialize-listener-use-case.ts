@@ -2,14 +2,15 @@ import { Exception } from "../../error";
 import { logger } from "../../logger";
 import { InMemoryInstanceRepository } from "../../repositories/in-memory/in-memory-instance-repository";
 import { PrismaCompanyRepository } from "../../repositories/prisma/prisma-company-repository";
+import { PrismaShippingHistoryRepository } from "../../repositories/prisma/prisma-shipping-history-repository";
 import { PrismaSendMessageRepository } from "../../repositories/prisma/prisma-send-message-repository";
 import { WebSocket } from "../../websocket";
 
 export class InitializeListenerUseCase {
   constructor(
     private inMemoryInstanceRepository: InMemoryInstanceRepository,
-    private prismaCompanyRepository: PrismaCompanyRepository,
     private prismaSendMessageRepository: PrismaSendMessageRepository,
+    private PrismaShippingHistoryRepository: PrismaShippingHistoryRepository,
     private webSocket: WebSocket
   ) {}
 
@@ -49,6 +50,15 @@ export class InitializeListenerUseCase {
       await this.prismaSendMessageRepository.updateAck({
         ack: msg.ack,
         protocol: msg.id.id,
+      });
+      const sendMessage =
+        await this.prismaSendMessageRepository.findByIdMessage(msg.id.id);
+
+      if (!sendMessage) return;
+
+      await this.PrismaShippingHistoryRepository.updateAck({
+        ack: msg.ack,
+        protocol: sendMessage?.id,
       });
     });
 

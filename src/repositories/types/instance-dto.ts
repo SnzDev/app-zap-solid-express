@@ -45,9 +45,9 @@ export interface InstanceExistsNumberResponseDTO {
 }
 export interface InstanceSendMessageDTO {
   access_key: string;
-  phoneNumber: string;
+  phone_number: string;
   message: string;
-  imageUrl?: string;
+  file_url?: string;
 }
 export interface InstanceSendMessageResponse {
   message: WAWebJS.Message;
@@ -63,4 +63,3 @@ export interface InstanceSendSurveyDTO {
   secondAnswer: string;
   useButtons: boolean;
 }
-export interface InstanceSendMessageResponseDTO {}

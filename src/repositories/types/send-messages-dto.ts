@@ -9,7 +9,6 @@ export interface SendMessagesUpdateResponseDTO {
 }
 
 export interface SendMessageCreateDTO {
-  id: string;
   access_key: string;
   file_url?: string;
   ack: number;
@@ -17,9 +16,4 @@ export interface SendMessageCreateDTO {
   message_body: string;
   sender: string;
   destiny: string;
-  is_survey?: boolean;
-  first_option?: string;
-  first_answer?: string;
-  second_option?: string;
-  second_answer?: string;
 }
