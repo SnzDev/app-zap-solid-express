@@ -11,4 +11,5 @@ export interface SendMessagesRepository {
   findByIdMessage(id: string): Promise<send_messages_api | null>;
   updateAck(props: SendMessagesUpdateAckDTO): Promise<void>;
   updateResponse(props: SendMessagesUpdateResponseDTO): Promise<void>;
+  findLast(destiny: string): Promise<send_messages_api | void>;
 }

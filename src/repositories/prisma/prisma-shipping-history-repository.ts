@@ -53,6 +53,9 @@ export class PrismaShippingHistoryRepository
     protocol,
     response,
   }: ShippingHistoryUpdateResponseDTO): Promise<void> {
+    const existsMessage = await this.findByProtocol(protocol);
+    if (!existsMessage) return;
+
     return await this.shippingHistory
       .update({
         data: {

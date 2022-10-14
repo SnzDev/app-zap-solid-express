@@ -88,7 +88,7 @@ export class InitializeListenerUseCase {
       }
 
       logger.info(`access_key: ${instance.access_key}, message: ${msg.from}`);
-      await this.receiveMessageUseCase.execute({
+      const receiveMessage = await this.receiveMessageUseCase.execute({
         access_key,
         device_type: msg.deviceType,
         from: msg.from,
@@ -99,6 +99,64 @@ export class InitializeListenerUseCase {
         timestamp: msg.timestamp,
         to: msg.to,
       });
+
+      const lastSend = await this.PrismaSendMessagesRepository.findLast(
+        msg.from
+      );
+      if (!lastSend) return;
+
+      if (!lastSend.is_survey && !lastSend.response) {
+        await this.PrismaSendMessagesRepository.updateResponse({
+          protocol: lastSend.id,
+          response: msg.body,
+        });
+        await this.PrismaShippingHistoryRepository.updateResponse({
+          protocol: lastSend.id,
+          response: msg.body,
+        });
+      }
+      if (lastSend.is_survey && !lastSend.response) {
+        if (msg.body === lastSend.first_option) {
+          await this.PrismaSendMessagesRepository.updateResponse({
+            protocol: lastSend.id,
+            response: msg.body,
+          });
+          await this.PrismaShippingHistoryRepository.updateResponse({
+            protocol: lastSend.id,
+            response: msg.body,
+          });
+          await this.inMemoryInstanceRepository.sendOneMessage({
+            body: lastSend.first_answer ?? "Resposta registrada",
+            chatId: msg.from,
+            client: instance.client,
+            options: undefined,
+          });
+          return;
+        }
+        if (msg.body === lastSend.second_option) {
+          await this.PrismaSendMessagesRepository.updateResponse({
+            protocol: lastSend.id,
+            response: msg.body,
+          });
+          await this.PrismaShippingHistoryRepository.updateResponse({
+            protocol: lastSend.id,
+            response: msg.body,
+          });
+          await this.inMemoryInstanceRepository.sendOneMessage({
+            body: lastSend.first_answer ?? "Resposta registrada",
+            chatId: msg.from,
+            client: instance.client,
+            options: undefined,
+          });
+          return;
+        }
+        await this.inMemoryInstanceRepository.sendOneMessage({
+          body: `Responda apenas: ${lastSend.first_option} ou ${lastSend.second_option}`,
+          chatId: msg.from,
+          client: instance.client,
+          options: undefined,
+        });
+      }
     });
 
     instance.client.on("message_ack", async (msg) => {

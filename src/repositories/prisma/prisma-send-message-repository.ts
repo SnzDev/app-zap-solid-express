@@ -75,7 +75,7 @@ export class PrismaSendMessagesRepository implements SendMessagesRepository {
     protocol,
     response,
   }: SendMessagesUpdateResponseDTO): Promise<void> {
-    const message = await this.findByIdMessage(protocol);
+    const message = await this.findByProtocol(protocol);
     if (!message) return;
 
     return await this.sendMessages
@@ -88,6 +88,15 @@ export class PrismaSendMessagesRepository implements SendMessagesRepository {
         },
       })
       .then(() => {})
+      .catch((error) => logger.error(`ShippingHistory: ${error}`));
+  }
+  async findLast(destiny: string): Promise<send_messages_api | void> {
+    return await this.sendMessages
+      .findMany({
+        where: { destiny },
+        orderBy: { timestamp: "desc" },
+      })
+      .then((response) => response[0])
       .catch((error) => logger.error(`ShippingHistory: ${error}`));
   }
 }
