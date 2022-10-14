@@ -143,7 +143,7 @@ export class InitializeListenerUseCase {
             response: msg.body,
           });
           await this.inMemoryInstanceRepository.sendOneMessage({
-            body: lastSend.first_answer ?? "Resposta registrada",
+            body: lastSend.second_answer ?? "Resposta registrada",
             chatId: msg.from,
             client: instance.client,
             options: undefined,
