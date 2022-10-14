@@ -70,19 +70,19 @@ export class SendSurveyUseCase {
           logger.error(`access_key: ${access_key}, error: ${error}`)
         );
       options = {
-        caption: `${message}\nResponda apenas: '${first_option}' ou '${second_option}'`,
+        caption: `${message}\n\nResponda apenas: '${first_option}' ou '${second_option}'`,
       };
       message = options.caption;
     }
     //IF NOT USE BUTTONS AND FILE
     if (!use_buttons && !file_url) {
-      body = `${message}\nResponda apenas: '${first_option}' ou '${second_option}'`;
-      message = options.caption;
+      body = `${message}\n\nResponda apenas: '${first_option}' ou '${second_option}'`;
+      message = body;
     }
 
     const sendMessage = await this.inMemoryInstanceRepository.sendOneMessage({
       client: instance.client,
-      body,
+      body: body ?? message,
       options,
       chatId,
     });
