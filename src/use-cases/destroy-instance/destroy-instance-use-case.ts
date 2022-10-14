@@ -9,9 +9,9 @@ export class DestroyInstanceUseCase {
   ) {}
 
   async execute(access_key: string) {
-    const existsCompany = await this.prismaCompanyRepository.findByAccessKey(
-      access_key
-    );
+    const existsCompany = await this.prismaCompanyRepository.findByAccessKey({
+      access_key,
+    });
     if (!existsCompany)
       throw new Exception(400, "Doesn't exists this access_key");
 

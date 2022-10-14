@@ -17,9 +17,9 @@ export class CheckNumberExistsUseCase {
     // if (phone_number.length !== 12)
     //   throw new Exception(400, "Phone numer needs lenght 12");
 
-    const existsCompany = await this.prismaCompanyRepository.findByAccessKey(
-      access_key
-    );
+    const existsCompany = await this.prismaCompanyRepository.findByAccessKey({
+      access_key,
+    });
 
     if (!existsCompany)
       throw new Exception(400, "Doesn't exists this access_key");
