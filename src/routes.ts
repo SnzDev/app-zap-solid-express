@@ -5,10 +5,12 @@ import { initializeInstanceController } from "./use-cases/initialize-instance";
 import { destroyInstanceController } from "./use-cases/destroy-instance";
 import { logoutInstanceController } from "./use-cases/logout-instance";
 import { CheckNumberExistsController } from "./use-cases/check-number-exists/check-number-exists-controller";
-import { sendMessageController } from "./use-cases/send-message";
-import { sendSurveyController } from "./use-cases/send-survey";
+import { SendMessageController } from "./use-cases/send-message/send-message-controller";
+import { SendSurveyController } from "./use-cases/send-survey/send-survey-controller";
 
 const checkNumberExistsController = new CheckNumberExistsController();
+const sendMessageController = new SendMessageController();
+const sendSurveyController = new SendSurveyController();
 
 const instance = Router();
 
@@ -39,12 +41,8 @@ instance.get(
   checkNumberExistsController.handle
 );
 
-instance.post("/:access_key/send/message", async (request, response) => {
-  await sendMessageController.handle(request, response);
-});
+instance.post("/:access_key/send/message", sendMessageController.handle);
 
-instance.post("/:access_key/send/survey", async (request, response) => {
-  await sendSurveyController.handle(request, response);
-});
+instance.post("/:access_key/send/survey", sendSurveyController.handle);
 
 export { instance };

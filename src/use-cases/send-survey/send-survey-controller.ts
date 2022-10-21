@@ -2,8 +2,6 @@ import { Request, Response } from "express";
 import { SendSurveyUseCase } from "./send-survey-use-case";
 
 export class SendSurveyController {
-  constructor(private sendSurveyUseCase: SendSurveyUseCase) {}
-
   async handle(request: Request, response: Response) {
     const {
       phone_number,
@@ -17,23 +15,18 @@ export class SendSurveyController {
     } = request.body;
     const { access_key } = request.params;
 
-    try {
-      const data = await this.sendSurveyUseCase.execute({
-        access_key,
-        first_answer,
-        first_option,
-        message,
-        phone_number,
-        second_answer,
-        second_option,
-        file_url,
-        use_buttons,
-      });
-      return response.json(data);
-    } catch (error: any) {
-      return response
-        .status(error.getStatusCode())
-        .json({ msg: error.message });
-    }
+    const sendSurveyUseCase = new SendSurveyUseCase();
+    const data = await sendSurveyUseCase.execute({
+      access_key,
+      first_answer,
+      first_option,
+      message,
+      phone_number,
+      second_answer,
+      second_option,
+      file_url,
+      use_buttons,
+    });
+    return response.json(data);
   }
 }

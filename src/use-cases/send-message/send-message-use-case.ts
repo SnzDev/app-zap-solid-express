@@ -67,7 +67,7 @@ export class SendMessageUsecase {
         access_key,
         ack: sendMessage.ack,
         destiny: chatId,
-        message_body: message,
+        message_body: options?.caption ?? message,
         message_id: sendMessage.id.id,
         sender: sendMessage.from,
         timestamp: sendMessage.timestamp,

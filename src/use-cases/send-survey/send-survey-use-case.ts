@@ -1,5 +1,5 @@
 import { Buttons, MessageMedia } from "whatsapp-web.js";
-import { Exception } from "../../error";
+import { prisma } from "../../database/prisma";
 import { logger } from "../../logger";
 import { InMemoryInstanceRepository } from "../../repositories/in-memory/in-memory-instance-repository";
 import { PrismaSendMessagesRepository } from "../../repositories/prisma/prisma-send-message-repository";
@@ -17,11 +17,6 @@ interface SendSurveyUseCaseDTO {
 }
 
 export class SendSurveyUseCase {
-  constructor(
-    private inMemoryInstanceRepository: InMemoryInstanceRepository,
-    private prismaSendMessagesRepository: PrismaSendMessagesRepository
-  ) {}
-
   async execute({
     access_key,
     first_answer,
@@ -33,27 +28,34 @@ export class SendSurveyUseCase {
     file_url,
     use_buttons,
   }: SendSurveyUseCaseDTO) {
-    let body, options;
+    if (!access_key) throw new Error("System needs access_key");
+    if (!phone_number) throw new Error("System needs phone_number");
+    if (!first_option) throw new Error("System needs first_option");
+    if (!first_answer) throw new Error("System needs first_answer");
+    if (!second_option) throw new Error("System needs second_option");
+    if (!second_answer) throw new Error("System needs second_answer");
 
-    const instanceStatus = await this.inMemoryInstanceRepository.status({
+    let body, options;
+    const inMemoryInstanceRepository = new InMemoryInstanceRepository();
+
+    const instance = await inMemoryInstanceRepository.findOne({
       access_key,
     });
-    const instance = await this.inMemoryInstanceRepository.findOne({
+    const instanceStatus = await inMemoryInstanceRepository.status({
       access_key,
     });
 
     if (!instance || instanceStatus.status !== "CONNECTED")
-      throw new Exception(
-        400,
+      throw new Error(
         `Instance not connected, status: ${instanceStatus.status}`
       );
 
     //VERIFY PHONE NUMBER
-    const contact = await this.inMemoryInstanceRepository.existsNumber({
+    const contact = await inMemoryInstanceRepository.existsNumber({
       access_key,
       phone_number,
     });
-    if (!contact) throw new Exception(400, "Phone number doesn't exists");
+    if (!contact) throw new Error("Phone number doesn't exists");
     const chatId = contact._serialized;
     //IF USE BUTTONS
     if (use_buttons)
@@ -72,7 +74,6 @@ export class SendSurveyUseCase {
       options = {
         caption: `${message}\n\nResponda apenas: '${first_option}' ou '${second_option}'`,
       };
-      message = options.caption;
     }
     //IF NOT USE BUTTONS AND FILE
     if (!use_buttons && !file_url) {
@@ -80,32 +81,33 @@ export class SendSurveyUseCase {
       message = body;
     }
 
-    const sendMessage = await this.inMemoryInstanceRepository.sendOneMessage({
+    const sendMessage = await inMemoryInstanceRepository.sendMessage({
       client: instance.client,
-      body: body ?? message,
+      body: options?.caption ?? message,
       options,
       chatId,
     });
 
-    if (!sendMessage) throw new Exception(400, "Cannot send your message");
+    if (!sendMessage) throw new Error("Cannot send your message");
 
-    const createMessage = await this.prismaSendMessagesRepository.create({
-      access_key,
-      ack: sendMessage.ack,
-      destiny: chatId,
-      message_body: message,
-      message_id: sendMessage.id.id,
-      sender: sendMessage.from,
-      timestamp: sendMessage.timestamp,
-      file_url,
-      is_survey: true,
-      first_option,
-      first_answer,
-      second_option,
-      second_answer,
+    const createMessage = await prisma.send_messages_api.create({
+      data: {
+        access_key,
+        ack: sendMessage.ack,
+        destiny: chatId,
+        message_body: options?.caption ?? message,
+        message_id: sendMessage.id.id,
+        sender: sendMessage.from,
+        timestamp: sendMessage.timestamp,
+        file_url,
+        is_survey: true,
+        first_option,
+        first_answer,
+        second_option,
+        second_answer,
+      },
     });
-    if (!createMessage)
-      throw new Exception(400, "Cannot register your message");
+    if (!createMessage) throw new Error("Cannot register your message");
 
     return createMessage;
   }
