@@ -4,9 +4,11 @@ import { getStatusInstanceController } from "./use-cases/get-status-instance";
 import { initializeInstanceController } from "./use-cases/initialize-instance";
 import { destroyInstanceController } from "./use-cases/destroy-instance";
 import { logoutInstanceController } from "./use-cases/logout-instance";
-import { checkNumberExistsController } from "./use-cases/check-number-exists";
+import { CheckNumberExistsController } from "./use-cases/check-number-exists/check-number-exists-controller";
 import { sendMessageController } from "./use-cases/send-message";
 import { sendSurveyController } from "./use-cases/send-survey";
+
+const checkNumberExistsController = new CheckNumberExistsController();
 
 const instance = Router();
 
@@ -34,9 +36,7 @@ instance.post("/:access_key/logout", async (request, response) => {
 
 instance.get(
   "/:access_key/check/contact/:phone_number",
-  async (request, response) => {
-    await checkNumberExistsController.handle(request, response);
-  }
+  checkNumberExistsController.handle
 );
 
 instance.post("/:access_key/send/message", async (request, response) => {

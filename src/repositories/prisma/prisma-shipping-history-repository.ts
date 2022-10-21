@@ -4,7 +4,7 @@ import {
   ShippingHistoryUpdateAckDTO,
   ShippingHistoryUpdateResponseDTO,
 } from "../types/shipping-history-dto";
-import { prisma } from "../../prisma";
+import { prisma } from "../../database/prisma";
 import { logger } from "../../logger";
 
 export class PrismaShippingHistoryRepository

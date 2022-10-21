@@ -1,7 +1,7 @@
 import { receive_messages_api } from "@prisma/client";
 import { ReceiveMessagesRepository } from "../receive-messages";
 import { CreateDTO } from "../types/receive-messages-dto";
-import { prisma } from "../../prisma";
+import { prisma } from "../../database/prisma";
 import { logger } from "../../logger";
 
 export class PrismaReceiveMessagesRepository

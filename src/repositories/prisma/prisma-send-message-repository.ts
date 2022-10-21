@@ -5,7 +5,7 @@ import {
   SendMessagesUpdateAckDTO,
   SendMessagesUpdateResponseDTO,
 } from "../types/send-messages-dto";
-import { prisma } from "../../prisma";
+import { prisma } from "../../database/prisma";
 import { logger } from "../../logger";
 
 export class PrismaSendMessagesRepository implements SendMessagesRepository {

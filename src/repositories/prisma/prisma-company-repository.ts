@@ -1,6 +1,6 @@
 import { CompanyRepository } from "../company-repository";
 import { company } from "@prisma/client";
-import { prisma } from "../../prisma";
+import { prisma } from "../../database/prisma";
 import { logger } from "../../logger";
 import { CompanyFindByAccessKeyDTO } from "../types/company-dto";
 

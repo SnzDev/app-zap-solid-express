@@ -1,6 +1,6 @@
 import { InitializeAllInstancesUseCase } from "./initialize-all-instances-use-case";
 import { Request, Response } from "express";
-import { prisma } from "../../prisma";
+import { prisma } from "../../database/prisma";
 import { initializeAllListenerController } from "../initialize-all-listeners";
 import { logger } from "../../logger";
 
