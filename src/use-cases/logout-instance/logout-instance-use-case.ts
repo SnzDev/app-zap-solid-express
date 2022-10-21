@@ -1,27 +1,22 @@
-import { Exception } from "../../error";
 import { InMemoryInstanceRepository } from "../../repositories/in-memory/in-memory-instance-repository";
-import { PrismaCompanyRepository } from "../../repositories/prisma/prisma-company-repository";
 
 export class LogoutInstanceUseCase {
-  constructor(
-    private prismaCompanyRepository: PrismaCompanyRepository,
-    private inMemoryInstanceRepository: InMemoryInstanceRepository
-  ) {}
-
   async execute(access_key: string) {
-    const existsCompany = await this.prismaCompanyRepository.findByAccessKey({
+    if (!access_key) throw new Error("System needs access_key");
+    const inMemoryInstanceRepository = new InMemoryInstanceRepository();
+
+    const existsCompany = await inMemoryInstanceRepository.findOne({
       access_key,
     });
-    if (!existsCompany)
-      throw new Exception(400, "Doesn't exists this access_key");
+    if (!existsCompany) throw new Error(`Instance does not exists`);
 
-    const instanceStatus = await this.inMemoryInstanceRepository.status({
-      access_key,
+    const instanceStatus = await inMemoryInstanceRepository.status({
+      client: existsCompany.client,
     });
 
     if (instanceStatus.status === "NOT_STARTED")
-      throw new Exception(400, "Instance already destroyed");
+      throw new Error("Instance already destroyed");
 
-    await this.inMemoryInstanceRepository.logout({ access_key });
+    await inMemoryInstanceRepository.logout({ client: existsCompany.client });
   }
 }

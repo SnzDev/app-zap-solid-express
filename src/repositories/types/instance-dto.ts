@@ -14,34 +14,28 @@ export interface InstanceFindOneDTO {
 }
 
 export interface InstanceDestroyDTO {
-  access_key: string;
+  client: Client;
 }
 
 export interface InstanceLogoutDTO {
-  access_key: string;
+  client: Client;
 }
 
 export interface InstanceFindOneDTO {
   access_key: string;
 }
 
-export interface InstanceStatusDTO {
-  access_key: string;
-}
 export interface InstanceStatusResponseDTO {
   status: "DISCONNECTED" | "ON_RUNNING" | "NOT_STARTED" | "NOT_FOUND" | WAState;
 }
 
 export interface InstanceStatusDTO {
-  access_key: string;
+  client: Client;
 }
 
 export interface InstanceExistsNumberDTO {
-  access_key: string;
+  client: Client;
   phone_number: string;
-}
-export interface InstanceExistsNumberResponseDTO {
-  exists: boolean;
 }
 
 export interface SendMessageDTO {

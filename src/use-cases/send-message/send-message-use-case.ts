@@ -25,21 +25,22 @@ export class SendMessageUsecase {
 
     const inMemoryInstanceRepository = new InMemoryInstanceRepository();
 
-    const instance = await inMemoryInstanceRepository.findOne({
-      access_key,
-    });
-    const instanceStatus = await inMemoryInstanceRepository.status({
+    const existsCompany = await inMemoryInstanceRepository.findOne({
       access_key,
     });
 
-    if (!instance || instanceStatus.status !== "CONNECTED")
-      throw new Error(
-        `Instance not connected, status: ${instanceStatus.status}`
-      );
+    if (!existsCompany) throw new Error(`Instance does not exists`);
+
+    const instanceStatus = await inMemoryInstanceRepository.status({
+      client: existsCompany.client,
+    });
+
+    if (instanceStatus.status !== "CONNECTED")
+      throw new Error(`Instance is not connected`);
 
     //VERIFY PHONE NUMBER
     const contact = await inMemoryInstanceRepository.existsNumber({
-      access_key,
+      client: existsCompany.client,
       phone_number,
     });
     if (!contact) throw new Error("This phone_number doesn't exists");
@@ -54,7 +55,7 @@ export class SendMessageUsecase {
     }
 
     const sendMessage = await inMemoryInstanceRepository.sendMessage({
-      client: instance.client,
+      client: existsCompany.client,
       body: body ?? message,
       options,
       chatId,

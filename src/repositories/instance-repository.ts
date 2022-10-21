@@ -3,15 +3,12 @@ import {
   InstanceCreateDTO,
   InstanceDestroyDTO,
   InstanceExistsNumberDTO,
-  InstanceExistsNumberResponseDTO,
   InstanceFindOneDTO,
   InstanceLogoutDTO,
   InstanceModelDTO,
-  InstanceSendMessageDTO,
-  InstanceSendSurveyDTO,
   InstanceStatusDTO,
   InstanceStatusResponseDTO,
-  SendOneMessageDTO,
+  SendMessageDTO,
 } from "./types/instance-dto";
 
 export interface InstanceRepository {
@@ -22,8 +19,5 @@ export interface InstanceRepository {
   logout(props: InstanceLogoutDTO): void;
   status(props: InstanceStatusDTO): Promise<InstanceStatusResponseDTO>;
   existsNumber(props: InstanceExistsNumberDTO): Promise<ContactId | null>;
-  sendMessage(props: InstanceSendMessageDTO): Promise<{
-    message: WAWebJS.Message;
-  }>;
-  sendOneMessage(props: SendOneMessageDTO): Promise<WAWebJS.Message | void>;
+  sendMessage(props: SendMessageDTO): Promise<WAWebJS.Message | void>;
 }

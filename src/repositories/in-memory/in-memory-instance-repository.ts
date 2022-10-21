@@ -26,28 +26,16 @@ export class InMemoryInstanceRepository implements InstanceRepository {
     if (!InMemoryInstanceRepository.INSTANCE) {
       InMemoryInstanceRepository.INSTANCE = new InMemoryInstanceRepository();
     }
-
     return InMemoryInstanceRepository.INSTANCE;
   }
-  async create({
-    access_key,
-  }: InstanceCreateDTO): Promise<InstanceModelDTO | undefined> {
-    const instanceExists = this.findOne({ access_key });
-    //IF EXISTS INSTANCE, DESTROY IT
-    if (instanceExists) {
-      await this.destroy({ access_key });
-      const index = this.instanceRepository.indexOf(instanceExists);
-      return (this.instanceRepository[index] = {
-        access_key,
-        client: ModelInstance(access_key),
-      });
-    }
-    //IF NOT EXISTS INSTANCE PUSH A NEW
-    this.instanceRepository.push({
+
+  async create({ access_key }: InstanceCreateDTO): Promise<InstanceModelDTO> {
+    const data = {
       access_key,
       client: ModelInstance(access_key),
-    });
-    return this.findOne({ access_key });
+    };
+    this.instanceRepository.push(data);
+    return data;
   }
 
   findAll(): InstanceModelDTO[] {
@@ -60,59 +48,30 @@ export class InMemoryInstanceRepository implements InstanceRepository {
     );
   }
 
-  async destroy({ access_key }: InstanceDestroyDTO): Promise<void> {
-    const instance = this.findOne({ access_key });
-    if (!instance) return;
-    await instance.client
-      .destroy()
-      .then(() => logger.info(`access_key: ${access_key}, destroyed session`))
-      .catch((error) =>
-        logger.info(`access_key: ${access_key}, error: ${error}`)
-      );
+  async destroy({ client }: InstanceDestroyDTO): Promise<void> {
+    logger.info(`Destroy`);
+    return await client.destroy();
   }
 
-  async logout({ access_key }: InstanceLogoutDTO): Promise<void> {
-    const instance = this.findOne({ access_key });
-    if (!instance) return;
-    await instance.client
-      .logout()
-      .then(() => logger.info(`access_key: ${access_key}, logout session`))
-      .catch((error) =>
-        logger.info(`access_key: ${access_key}, error: ${error}`)
-      );
+  async logout({ client }: InstanceLogoutDTO): Promise<void> {
+    logger.info(`Logout`);
+    return await client.logout();
   }
 
   async status({
-    access_key,
+    client,
   }: InstanceStatusDTO): Promise<InstanceStatusResponseDTO> {
-    const instance = this.findOne({ access_key });
-
-    //IF DOESN'T HAVE INSTANCE CREATED RETURN NOT_STARTED
-    if (!instance) return { status: "NOT_STARTED" };
-
-    const response = await instance.client
+    const response = await client
       .getState()
       .then((response) => response ?? "ON_RUNNING")
       .catch((error): "NOT_STARTED" => "NOT_STARTED");
-
-    logger.info(`access_key: ${access_key}, status: ${response}`);
-
     return { status: response };
   }
   async existsNumber({
-    access_key,
+    client,
     phone_number,
   }: InstanceExistsNumberDTO): Promise<ContactId | null> {
-    const instance = this.findOne({ access_key });
-    if (!instance) throw new Error("Instance not started");
-
-    return await instance.client
-      .getNumberId(phone_number)
-      .then((response) => response)
-      .catch((error) => {
-        logger.info(`access_key: ${access_key}, error: ${error}`);
-        return null;
-      });
+    return await client.getNumberId(phone_number);
   }
   async sendMessage({
     body,
