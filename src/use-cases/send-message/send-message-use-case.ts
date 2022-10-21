@@ -1,4 +1,6 @@
-import { Exception } from "../../error";
+import { MessageMedia } from "whatsapp-web.js";
+import { prisma } from "../../database/prisma";
+import { logger } from "../../logger";
 import { InMemoryInstanceRepository } from "../../repositories/in-memory/in-memory-instance-repository";
 import { PrismaSendMessagesRepository } from "../../repositories/prisma/prisma-send-message-repository";
 
@@ -10,42 +12,71 @@ interface SendMessageUseCaseDTO {
 }
 
 export class SendMessageUsecase {
-  constructor(
-    private inMemoryInstanceRepository: InMemoryInstanceRepository,
-    private PrismaSendMessagesRepository: PrismaSendMessagesRepository
-  ) {}
-
   async execute({
     access_key,
     file_url,
     message,
     phone_number,
   }: SendMessageUseCaseDTO) {
-    const existsNumber = await this.inMemoryInstanceRepository.existsNumber({
+    if (!access_key) throw new Error("Stystem needs access_key");
+    if (!message) throw new Error("System needs message");
+    if (!phone_number) throw new Error("System needs phone_number");
+    let body, options;
+
+    const inMemoryInstanceRepository = new InMemoryInstanceRepository();
+
+    const instance = await inMemoryInstanceRepository.findOne({
+      access_key,
+    });
+    const instanceStatus = await inMemoryInstanceRepository.status({
+      access_key,
+    });
+
+    if (!instance || instanceStatus.status !== "CONNECTED")
+      throw new Error(
+        `Instance not connected, status: ${instanceStatus.status}`
+      );
+
+    //VERIFY PHONE NUMBER
+    const contact = await inMemoryInstanceRepository.existsNumber({
       access_key,
       phone_number,
     });
-    if (!existsNumber) throw new Exception(400, "This number not exists!");
+    if (!contact) throw new Error("This phone_number doesn't exists");
+    const chatId = contact._serialized;
 
-    const { message: sendMessage } =
-      await this.inMemoryInstanceRepository.sendMessage({
-        access_key,
-        message,
-        phone_number: existsNumber._serialized,
-        file_url,
-      });
+    //IF ATTACH FILE
+    if (file_url) {
+      body = await MessageMedia.fromUrl(file_url);
+      options = {
+        caption: `${message}`,
+      };
+    }
 
-    const response = await this.PrismaSendMessagesRepository.create({
-      access_key,
-      file_url,
-      message_body: sendMessage.body,
-      ack: sendMessage.ack,
-      destiny: sendMessage.to,
-      message_id: sendMessage.id.id,
-      sender: sendMessage.from,
-      timestamp: sendMessage.timestamp,
+    const sendMessage = await inMemoryInstanceRepository.sendMessage({
+      client: instance.client,
+      body: body ?? message,
+      options,
+      chatId,
     });
-    if (!response) throw new Exception(400, "Cannot register on database");
-    return response;
+
+    if (!sendMessage) throw new Error("Cannot send your message");
+
+    const createMessage = await prisma.send_messages_api.create({
+      data: {
+        access_key,
+        ack: sendMessage.ack,
+        destiny: chatId,
+        message_body: message,
+        message_id: sendMessage.id.id,
+        sender: sendMessage.from,
+        timestamp: sendMessage.timestamp,
+        file_url,
+      },
+    });
+
+    if (!createMessage) throw new Error("Cannot register your message");
+
+    return createMessage;
   }
 }

@@ -43,17 +43,8 @@ export interface InstanceExistsNumberDTO {
 export interface InstanceExistsNumberResponseDTO {
   exists: boolean;
 }
-export interface InstanceSendMessageDTO {
-  access_key: string;
-  phone_number: string;
-  message: string;
-  file_url?: string;
-}
-export interface InstanceSendMessageResponse {
-  message: WAWebJS.Message;
-}
 
-export interface SendOneMessageDTO {
+export interface SendMessageDTO {
   client: Client;
   chatId: string;
   body: WAWebJS.MessageContent;

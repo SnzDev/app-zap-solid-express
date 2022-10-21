@@ -1,7 +1,6 @@
 import WAWebJS, { ContactId, MessageMedia } from "whatsapp-web.js";
 import { logger } from "../../logger";
 import { ModelInstance } from "../../model/model-instance";
-import { Exception } from "../../error";
 import { InstanceRepository } from "../instance-repository";
 import {
   InstanceCreateDTO,
@@ -10,10 +9,9 @@ import {
   InstanceFindOneDTO,
   InstanceLogoutDTO,
   InstanceModelDTO,
-  InstanceSendMessageDTO,
   InstanceStatusDTO,
   InstanceStatusResponseDTO,
-  SendOneMessageDTO,
+  SendMessageDTO,
 } from "../types/instance-dto";
 
 export class InMemoryInstanceRepository implements InstanceRepository {
@@ -106,7 +104,7 @@ export class InMemoryInstanceRepository implements InstanceRepository {
     phone_number,
   }: InstanceExistsNumberDTO): Promise<ContactId | null> {
     const instance = this.findOne({ access_key });
-    if (!instance) throw new Exception(400, "Instance not started");
+    if (!instance) throw new Error("Instance not started");
 
     return await instance.client
       .getNumberId(phone_number)
@@ -116,60 +114,13 @@ export class InMemoryInstanceRepository implements InstanceRepository {
         return null;
       });
   }
-
   async sendMessage({
-    access_key,
-    message,
-    phone_number,
-    file_url,
-  }: InstanceSendMessageDTO): Promise<{
-    message: WAWebJS.Message;
-  }> {
-    const instanceStatus = await this.status({ access_key });
-    const instance = await this.findOne({ access_key });
-
-    if (instanceStatus.status !== "CONNECTED" || !instance)
-      throw new Exception(400, "Instance not started");
-
-    if (!file_url) {
-      const sendMessage = await instance.client
-        .sendMessage(phone_number, message)
-        .then((response) => response)
-        .catch((error) =>
-          logger.info(`access_key: ${access_key}, error: ${error}`)
-        );
-      if (!sendMessage) throw new Exception(400, "Message cannot be send!");
-
-      return { message: sendMessage };
-    }
-
-    const media = await MessageMedia.fromUrl(file_url)
-      .then((response) => response)
-      .catch((error) =>
-        logger.error(`access_key: ${access_key}, error: ${error}`)
-      );
-
-    if (!media) throw new Exception(400, "Cannot use this image url");
-
-    const sendMessage = await instance.client.sendMessage(phone_number, media, {
-      caption: message,
-    });
-    if (!sendMessage) throw new Exception(400, "Message cannot be send!");
-    return { message: sendMessage };
-  }
-
-  async sendOneMessage({
     body,
     client,
     options,
     chatId,
-  }: SendOneMessageDTO): Promise<WAWebJS.Message | void> {
+  }: SendMessageDTO): Promise<WAWebJS.Message | void> {
     logger.info(`SendMessage: ${chatId}`);
-    return await client
-      .sendMessage(chatId, body, options)
-      .then((response) => response)
-      .catch((error) => {
-        logger.error(`SendMessage: ${error}`);
-      });
+    return await client.sendMessage(chatId, body, options);
   }
 }
