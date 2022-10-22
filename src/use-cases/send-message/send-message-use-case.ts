@@ -1,8 +1,6 @@
 import { MessageMedia } from "whatsapp-web.js";
 import { prisma } from "../../database/prisma";
-import { logger } from "../../logger";
 import { InMemoryInstanceRepository } from "../../repositories/in-memory/in-memory-instance-repository";
-import { PrismaSendMessagesRepository } from "../../repositories/prisma/prisma-send-message-repository";
 
 interface SendMessageUseCaseDTO {
   phone_number: string;
@@ -25,7 +23,7 @@ export class SendMessageUsecase {
 
     const inMemoryInstanceRepository = new InMemoryInstanceRepository();
 
-    const existsCompany = await inMemoryInstanceRepository.findOne({
+    const existsCompany = inMemoryInstanceRepository.findOne({
       access_key,
     });
 

@@ -6,7 +6,7 @@ export class DestroyInstanceUseCase {
 
     const inMemoryInstanceRepository = InMemoryInstanceRepository.getInstance();
 
-    const existsCompany = await inMemoryInstanceRepository.findOne({
+    const existsCompany = inMemoryInstanceRepository.findOne({
       access_key,
     });
     if (!existsCompany) throw new Error("Instance does not exists");

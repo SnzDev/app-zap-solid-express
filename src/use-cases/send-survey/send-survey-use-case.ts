@@ -2,7 +2,6 @@ import { Buttons, MessageMedia } from "whatsapp-web.js";
 import { prisma } from "../../database/prisma";
 import { logger } from "../../logger";
 import { InMemoryInstanceRepository } from "../../repositories/in-memory/in-memory-instance-repository";
-import { PrismaSendMessagesRepository } from "../../repositories/prisma/prisma-send-message-repository";
 
 interface SendSurveyUseCaseDTO {
   access_key: string;
@@ -38,21 +37,22 @@ export class SendSurveyUseCase {
     let body, options;
     const inMemoryInstanceRepository = new InMemoryInstanceRepository();
 
-    const instance = await inMemoryInstanceRepository.findOne({
-      access_key,
-    });
-    const instanceStatus = await inMemoryInstanceRepository.status({
+    const companyExists = inMemoryInstanceRepository.findOne({
       access_key,
     });
 
-    if (!instance || instanceStatus.status !== "CONNECTED")
-      throw new Error(
-        `Instance not connected, status: ${instanceStatus.status}`
-      );
+    if (!companyExists) throw new Error(`Instance does not exists`);
+
+    const instanceStatus = await inMemoryInstanceRepository.status({
+      client: companyExists.client,
+    });
+
+    if (instanceStatus.status !== "CONNECTED")
+      throw new Error(`Instance is not connected`);
 
     //VERIFY PHONE NUMBER
     const contact = await inMemoryInstanceRepository.existsNumber({
-      access_key,
+      client: companyExists.client,
       phone_number,
     });
     if (!contact) throw new Error("Phone number doesn't exists");
@@ -82,7 +82,7 @@ export class SendSurveyUseCase {
     }
 
     const sendMessage = await inMemoryInstanceRepository.sendMessage({
-      client: instance.client,
+      client: companyExists.client,
       body: options?.caption ?? message,
       options,
       chatId,

@@ -5,7 +5,7 @@ export class LogoutInstanceUseCase {
     if (!access_key) throw new Error("System needs access_key");
     const inMemoryInstanceRepository = new InMemoryInstanceRepository();
 
-    const existsCompany = await inMemoryInstanceRepository.findOne({
+    const existsCompany = inMemoryInstanceRepository.findOne({
       access_key,
     });
     if (!existsCompany) throw new Error(`Instance does not exists`);

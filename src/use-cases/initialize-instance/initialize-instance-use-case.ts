@@ -7,7 +7,7 @@ export class InitializeInstanceUseCase {
     if (!access_key) throw new Error("System needs access_key");
 
     const inMemoryInstanceRepository = InMemoryInstanceRepository.getInstance();
-    const companyExists = await inMemoryInstanceRepository.findOne({
+    const companyExists = inMemoryInstanceRepository.findOne({
       access_key,
     });
     if (!companyExists) throw new Error("Instance does not exists");
