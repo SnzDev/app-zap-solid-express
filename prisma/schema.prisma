@@ -13,7 +13,7 @@ model send_messages_api {
   access_key    String
   file_url      String?
   ack           Int
-  message_id    String
+  message_id    String @unique
   message_body  String
   sender        String
   destiny       String
@@ -34,7 +34,7 @@ model receive_messages_api {
   access_key    String
   from          String
   to            String
-  message_id    String
+  message_id    String @unique
   message_body  String
   device_type   String
   has_media     Boolean
@@ -49,15 +49,18 @@ model company {
   id             BigInt                  @id @default(autoincrement()) @db.UnsignedBigInt
   name           String                  @db.VarChar(200)
   active         Boolean
-  line           BigInt
+  line           String
   app            String                  @db.VarChar(200)
   access_key     String              @unique @db.VarChar(200)
-  port           Int
+  port           Int      @default(443)
   webhook_url    String?                 @db.VarChar(250)
-  webhook_method company_webhook_method?
+  qr             String?
   id_external    String?                 @db.VarChar(255)
-  url_line       String?                 @db.VarChar(255)
+  url_line       String  @default("zap.startmessage.com.br") @db.VarChar(255)
+  created_at     DateTime @default(now())
+  updated_at     DateTime @updatedAt
 
+  webhook_method company_webhook_method?
   send_messages_api send_messages_api []
   recieve_messages_api receive_messages_api []
 }
@@ -70,7 +73,8 @@ model clients {
   cpf              String? @db.VarChar(100)
   email            String? @db.VarChar(100)
   birthday         String? @db.VarChar(100)
-  receive_messages Boolean
+  receive_messages Boolean 
+  exists           Boolean @default(true)
   id_external      String? @db.VarChar(255)
 }
 

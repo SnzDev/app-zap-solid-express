@@ -1,19 +1,21 @@
-import { Exception } from "../../error";
 import { InMemoryInstanceRepository } from "../../repositories/in-memory/in-memory-instance-repository";
-import { PrismaCompanyRepository } from "../../repositories/prisma/prisma-company-repository";
 
 class GetStatusInstanceUseCase {
-  constructor(
-    private inMemoryInstanceRepository: InMemoryInstanceRepository,
-    private prismaCompanyRepository: PrismaCompanyRepository
-  ) {}
+  constructor() {}
 
   async execute(access_key: string) {
-    const company = await this.prismaCompanyRepository.findByAccessKey({
+    if (!access_key) throw new Error("System needs access_key");
+
+    const inMemoryInstanceRepository = InMemoryInstanceRepository.getInstance();
+
+    const existsCompany = await inMemoryInstanceRepository.findOne({
       access_key,
     });
-    if (!company) throw new Exception(400, "Don't exists this access_key");
-    return await this.inMemoryInstanceRepository.status({ access_key });
+    if (!existsCompany) throw new Error("Instance does not exists");
+
+    return await inMemoryInstanceRepository.status({
+      client: existsCompany.client,
+    });
   }
 }
 

@@ -1,33 +1,29 @@
-import { Exception } from "../../error";
 import { logger } from "../../logger";
 import { InMemoryInstanceRepository } from "../../repositories/in-memory/in-memory-instance-repository";
-import { PrismaCompanyRepository } from "../../repositories/prisma/prisma-company-repository";
 
 export class InitializeInstanceUseCase {
-  constructor(
-    private inMemoryInstanceRepository: InMemoryInstanceRepository,
-    private prismaCompanyRepository: PrismaCompanyRepository
-  ) {}
-
   async execute(access_key: string) {
-    const company = await this.prismaCompanyRepository.findByAccessKey({
+    const inMemoryInstanceRepository = InMemoryInstanceRepository.getInstance();
+    const companyExists = await inMemoryInstanceRepository.findOne({
       access_key,
     });
-    if (!company) throw new Exception(400, "Don't exists this access_key");
+    if (!companyExists) throw new Error("Instance does not exists");
 
-    const instanceStatus = await this.inMemoryInstanceRepository.status({
-      access_key,
+    const instanceStatus = await inMemoryInstanceRepository.status({
+      client: companyExists.client,
     });
 
-    //IF DOESN'T HAVE INSTANCE CREATED
     if (instanceStatus.status !== "NOT_STARTED")
-      throw new Exception(400, "Already started");
+      throw new Error("Instance already started");
 
-    const instance = await this.inMemoryInstanceRepository.create({
+    await inMemoryInstanceRepository.destroy({ client: companyExists.client });
+    inMemoryInstanceRepository.removeInstance(access_key);
+
+    const instance = await inMemoryInstanceRepository.create({
       access_key,
     });
 
-    if (!instance) throw new Exception(400, "Not created!");
+    if (!instance) throw new Error("Not created!");
 
     instance.client
       .initialize()
@@ -35,7 +31,7 @@ export class InitializeInstanceUseCase {
       .catch((error) =>
         logger.error(
           { access_key: instance.access_key, error },
-          `access_key: ${instance.access_key}, error: ${error}`
+          `${instance.access_key}, error: ${error}`
         )
       );
     const promise = () =>
@@ -43,7 +39,7 @@ export class InitializeInstanceUseCase {
         instance.client.once("qr", (qr) => {
           logger.info(
             { access_key: instance.access_key, qr: qr },
-            `access_key: ${instance.access_key}, qr: ${qr} `
+            `First open: ${instance.access_key}, qr: ${qr} `
           );
           resolve(qr);
         });
@@ -51,7 +47,7 @@ export class InitializeInstanceUseCase {
         instance.client.once("ready", () => {
           logger.info(
             { access_key: instance.access_key, ready: true },
-            `access_key: ${instance.access_key}, ready: ${true} `
+            `First open: ${instance.access_key}, ready: ${true} `
           );
 
           resolve(true);

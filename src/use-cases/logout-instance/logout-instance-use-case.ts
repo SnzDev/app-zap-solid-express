@@ -18,5 +18,6 @@ export class LogoutInstanceUseCase {
       throw new Error("Instance already destroyed");
 
     await inMemoryInstanceRepository.logout({ client: existsCompany.client });
+    inMemoryInstanceRepository.removeInstance(access_key);
   }
 }

@@ -1,4 +1,4 @@
-import WAWebJS, { ContactId, MessageMedia } from "whatsapp-web.js";
+import WAWebJS, { ContactId } from "whatsapp-web.js";
 import { logger } from "../../logger";
 import { ModelInstance } from "../../model/model-instance";
 import { InstanceRepository } from "../instance-repository";
@@ -20,6 +20,15 @@ export class InMemoryInstanceRepository implements InstanceRepository {
 
   constructor() {
     this.instanceRepository = [];
+  }
+  removeInstance(access_key: string): void {
+    const instanceExists = this.instanceRepository.find((value) => {
+      value.access_key === access_key;
+    });
+    if (!instanceExists) return;
+
+    const index = this.instanceRepository.indexOf(instanceExists);
+    this.instanceRepository.splice(index, 1);
   }
 
   public static getInstance() {
