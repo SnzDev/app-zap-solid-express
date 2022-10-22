@@ -1,21 +1,17 @@
 import { Request, Response } from "express";
-import { initializeListenerController } from "../initialize-listener";
+import { InitializeListenerController } from "../initialize-listener/initialize-listener-controller";
 import { InitializeInstanceUseCase } from "./initialize-instance-use-case";
 
 export class InitializeInstanceController {
-  constructor(private initializeInstanceUseCase: InitializeInstanceUseCase) {}
   async handle(request: Request, response: Response) {
     const { access_key } = request.params;
 
-    try {
-      await this.initializeInstanceUseCase.execute(access_key);
-      initializeListenerController.handle(request);
+    const initializeListenerController = new InitializeListenerController();
+    const initializeInstanceUseCase = new InitializeInstanceUseCase();
 
-      return response.status(201).send();
-    } catch (error: any) {
-      return response
-        .status(error.getStatusCode())
-        .json({ msg: error.message });
-    }
+    await initializeInstanceUseCase.execute(access_key);
+    initializeListenerController.handle(request);
+
+    return response.status(201).send();
   }
 }

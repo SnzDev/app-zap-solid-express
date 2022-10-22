@@ -19,5 +19,6 @@ export class DestroyInstanceUseCase {
       throw new Error("Instance already destroyed");
 
     await inMemoryInstanceRepository.destroy({ client: existsCompany.client });
+    inMemoryInstanceRepository.removeInstance(access_key);
   }
 }

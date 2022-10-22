@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { initializeAllInstancesController } from "./use-cases/initialize-all-instances";
 import { GetStatusInstanceController } from "./use-cases/get-status-instance/get-status-instance-controller";
-import { initializeInstanceController } from "./use-cases/initialize-instance";
+import { InitializeInstanceController } from "./use-cases/initialize-instance/initialize-instance-controller";
 import { DestroyInstanceController } from "./use-cases/destroy-instance/destroy-instance-controller";
 import { LogoutInstanceController } from "./use-cases/logout-instance/logout-instance-controller";
 import { CheckNumberExistsController } from "./use-cases/check-number-exists/check-number-exists-controller";
@@ -14,6 +14,7 @@ const sendSurveyController = new SendSurveyController();
 const getStatusInstanceController = new GetStatusInstanceController();
 const destroyInstanceController = new DestroyInstanceController();
 const logoutInstanceController = new LogoutInstanceController();
+const initializeInstanceController = new InitializeInstanceController();
 
 const instance = Router();
 
@@ -23,9 +24,7 @@ const init = async () => {
 };
 init();
 
-instance.post("/:access_key/init", async (request, response) => {
-  await initializeInstanceController.handle(request, response);
-});
+instance.post("/:access_key/init", initializeInstanceController.handle);
 
 instance.get("/:access_key/status", getStatusInstanceController.handle);
 
