@@ -5,7 +5,15 @@ export class SendMessageController {
   constructor() {}
 
   async handle(request: Request, response: Response, next: NextFunction) {
-    const { phone_number, message, file_url } = request.body;
+    const {
+      phone_number,
+      message,
+      file_url,
+      id_message,
+      id_group,
+      id_section,
+      id_user,
+    } = request.body;
     const { access_key } = request.params;
 
     const sendMessageUseCaseDTO = new SendMessageUsecase();
@@ -15,6 +23,10 @@ export class SendMessageController {
         file_url,
         message,
         phone_number,
+        id_group,
+        id_message,
+        id_section,
+        id_user,
       });
       return response.json(sendMessage);
     } catch (e) {

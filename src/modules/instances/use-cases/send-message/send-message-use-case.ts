@@ -7,6 +7,11 @@ interface SendMessageUseCaseDTO {
   message: string;
   file_url: string;
   access_key: string;
+  id_message?: number;
+  id_group?: number;
+  id_section?: number;
+  id_survey?: number;
+  id_user?: number;
 }
 
 export class SendMessageUsecase {
@@ -15,6 +20,10 @@ export class SendMessageUsecase {
     file_url,
     message,
     phone_number,
+    id_message,
+    id_group,
+    id_section,
+    id_user,
   }: SendMessageUseCaseDTO) {
     if (!access_key) throw new Error("Stystem needs access_key");
     if (!message) throw new Error("System needs message");
@@ -26,8 +35,9 @@ export class SendMessageUsecase {
     const existsCompany = inMemoryInstanceRepository.findOne({
       access_key,
     });
+    const company = await prisma.company.findFirst({ where: { access_key } });
 
-    if (!existsCompany) throw new Error(`Instance does not exists`);
+    if (!existsCompany || !company) throw new Error(`Instance does not exists`);
 
     const instanceStatus = await inMemoryInstanceRepository.status({
       client: existsCompany.client,
@@ -71,6 +81,19 @@ export class SendMessageUsecase {
         sender: sendMessage.from,
         timestamp: sendMessage.timestamp,
         file_url,
+      },
+    });
+    await prisma.shipping_history.create({
+      data: {
+        id_company: company.id,
+        message,
+        status: sendMessage.ack,
+        protocol: sendMessage.id.id,
+        phone_number: phone_number,
+        id_message,
+        id_group,
+        id_section,
+        id_user,
       },
     });
 
