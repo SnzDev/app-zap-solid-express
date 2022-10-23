@@ -12,6 +12,12 @@ export class SendSurveyController {
       second_answer,
       use_buttons,
       file_url,
+      id_message,
+      id_group,
+      id_section,
+      id_user,
+      id_survey,
+      is_startmessage,
     } = request.body;
     const { access_key } = request.params;
 
@@ -27,6 +33,12 @@ export class SendSurveyController {
         second_option,
         file_url,
         use_buttons,
+        id_message,
+        id_group,
+        id_section,
+        id_user,
+        id_survey,
+        is_startmessage,
       });
       return response.json(data);
     } catch (e) {

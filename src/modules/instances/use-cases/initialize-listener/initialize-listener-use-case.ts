@@ -4,13 +4,13 @@ import { InMemoryInstanceRepository } from "../../repositories/in-memory-instanc
 import { SaveIfHaveFile } from "../../../../utils/save-file";
 import { sanitizeString } from "../../../../utils/sanitize-string";
 import { saveChatHistory } from "../../../../utils/save-chat-history";
+import { SendMessageUsecase } from "../send-message/send-message-use-case";
 
 export class InitializeListenerUseCase {
   async execute(access_key: string) {
     if (!access_key) throw new Error("System needs access_key");
 
     const inMemoryInstanceRepository = InMemoryInstanceRepository.getInstance();
-
     const existsCompany = inMemoryInstanceRepository.findOne({ access_key });
     if (!existsCompany) throw new Error("Instance does not exists");
     const company = await prisma.company.findFirstOrThrow({
@@ -29,158 +29,124 @@ export class InitializeListenerUseCase {
         );
     });
 
-    existsCompany.client.once("ready", async () => {
+    existsCompany.client.once("ready", () => {
       existsCompany.client.removeListener("qr", () => {});
       const clientInfo = existsCompany.client.info;
-      await prisma.company
+      prisma.company
         .update({
-          data: { app: clientInfo.pushname, line: clientInfo.wid.user },
+          data: { app: clientInfo.pushname, line: clientInfo.wid.user, qr: "" },
           where: { access_key: existsCompany.access_key },
         })
+        .then(() => logger.info(`Line: ${company.name}, qrcode removed`))
         .catch((e) =>
           logger.error(`Line: ${company.name}, updateClientInfo: ${e}`)
         );
 
       logger.info(`Line: ${company.name}, ready to use`);
-      prisma.company
-        .update({
-          where: { access_key: access_key },
-          data: { qr: "" },
-        })
-        .then(() => logger.info(`Line: ${company.name}, qrcode removed`))
-        .catch((e) =>
-          logger.error(`Line: ${company.name}, qrUpdateError: ${e}`)
-        );
     });
 
     existsCompany.client.on("message_create", async (msg) => {
       //RETURN IF IT'S FROM STATUS
       //RETURN IF IT'S FROM GROUP
       if (msg.isStatus || msg.from.includes("@g.us")) return;
-      logger.info(`Line: ${company.name}, messageCreated: ${msg.from}`);
-
-      await saveChatHistory({ msg, access_key: existsCompany.access_key });
 
       const file_url = await SaveIfHaveFile(existsCompany.access_key, msg);
-
-      if (file_url) logger.info(`Line: ${company.name}, File: ${file_url}`);
-    });
-
-    existsCompany.client.on("message", async (msg) => {
-      //RETURN IF IT'S FROM STATUS
-      //RETURN IF IT'S FROM GROUP
-      if (msg.isStatus || msg.from.includes("@g.us")) return;
-      logger.info(`Line: ${company.name}, recieveMessage: ${msg.from}`);
-
-      const file_url = await SaveIfHaveFile(existsCompany.access_key, msg);
-
       if (file_url) logger.info(`Line: ${company.name}, File: ${file_url}`);
 
+      if (msg.fromMe) {
+        return logger.info(`Line: ${company.name}, msgSend`);
+      }
       await saveChatHistory({ msg, access_key: existsCompany.access_key });
+      logger.info(`Line: ${company.name}, saveMessageHistory: ${msg.from}`);
+      logger.info(`Line: ${company.name}, msgReceive`);
+      const sendMessageUseCase = new SendMessageUsecase();
 
-      const [lastSend] = await prisma.send_messages_api.findMany({
-        where: { destiny: msg.from },
-        orderBy: { timestamp: "desc" },
+      const [number] = msg.from.split("@");
+
+      const [lastSend] = await prisma.shipping_history.findMany({
+        where: { phone_number: number, isStartMessage: true },
+        orderBy: { chatHistory: { timestamp: "desc" } },
+        include: { chatHistory: true, messages: true },
       });
-      if (!lastSend) return;
 
-      if (!lastSend.is_survey && !lastSend.response) {
-        await prisma.send_messages_api
-          .update({
-            data: {
-              response: msg.body,
-            },
-            where: { id: lastSend.id },
-          })
-          .catch((e) =>
-            logger.error(`Line: ${company.name}, updateResponseApi: ${e}`)
-          );
-        await prisma.shipping_history
+      if (!lastSend || !lastSend.messages) return;
+
+      if (!lastSend.messages.is_survey && !lastSend.question_response) {
+        return prisma.shipping_history
           .update({
             data: {
               question_response: msg.body,
             },
-            where: { protocol: lastSend.id },
+            where: { id: lastSend.id },
           })
+          .then((response) =>
+            logger.info(`Line: ${company.name}, updateResponse`)
+          )
           .catch((e) =>
             logger.error(
-              `Line: ${company.name}, updateResponseStartMessage: ${e}`
+              `Line: ${company.name}, updateResponseStartmessage: ${e}`
             )
           );
       }
-      if (lastSend.is_survey && !lastSend.response) {
+      if (lastSend.messages.is_survey && !lastSend.question_response) {
         if (
-          sanitizeString(msg.body) === sanitizeString(lastSend?.first_option)
+          sanitizeString(msg.body) ===
+          sanitizeString(lastSend.messages.first_option)
         ) {
-          await prisma.send_messages_api
-            .update({
-              data: {
-                response: msg.body,
-              },
-              where: { id: lastSend.id },
-            })
-            .catch((e) =>
-              logger.error(`Line: ${company.name}, updateResponseApi: ${e}`)
-            );
           await prisma.shipping_history
             .update({
               data: {
                 question_response: msg.body,
+                question_answer_correct: true,
+                question_response_date: moment().format("YYYY-MM-DD HH:MM"),
               },
-              where: { protocol: lastSend.id },
+              where: { id: lastSend.id },
             })
             .catch((e) =>
               logger.error(
                 `Line: ${company.name}, updateResponseStartMessage: ${e}`
               )
             );
-          await inMemoryInstanceRepository.sendMessage({
-            body: lastSend.first_answer ?? "Resposta registrada",
-            chatId: msg.from,
-            client: existsCompany.client,
-            options: undefined,
+          await sendMessageUseCase.execute({
+            access_key,
+            message: lastSend.messages.first_answer ?? "Resposta registrada",
+            phone_number: number,
+            file_url: "",
           });
           return;
         }
         if (
-          sanitizeString(msg.body) === sanitizeString(lastSend.second_option)
+          sanitizeString(msg.body) ===
+          sanitizeString(lastSend.messages.second_option)
         ) {
-          await prisma.send_messages_api
-            .update({
-              data: {
-                response: msg.body,
-              },
-              where: { id: lastSend.id },
-            })
-            .catch((e) =>
-              logger.error(`Line: ${company.name}, updateResponseApi: ${e}`)
-            );
           await prisma.shipping_history
             .update({
               data: {
                 question_response: msg.body,
+                question_answer_correct: true,
+                question_response_date: new Date(),
               },
-              where: { protocol: lastSend.id },
+              where: { id: lastSend.id },
             })
             .catch((e) =>
               logger.error(
                 `Line: ${company.name}, updateResponseStartMessage: ${e}`
               )
             );
-          await inMemoryInstanceRepository.sendMessage({
-            body: lastSend.second_answer ?? "Resposta registrada",
-            chatId: msg.from,
-            client: existsCompany.client,
-            options: undefined,
+          await sendMessageUseCase.execute({
+            access_key,
+            message: lastSend.messages.second_answer ?? "Resposta registrada",
+            phone_number: number,
+            file_url: "",
           });
           return;
         }
 
-        await inMemoryInstanceRepository.sendMessage({
-          body: `Responda apenas: ${lastSend.first_option} ou ${lastSend.second_option}`,
-          chatId: msg.from,
-          client: existsCompany.client,
-          options: undefined,
+        await sendMessageUseCase.execute({
+          access_key,
+          message: `Responda apenas: ${lastSend.messages.first_option} ou ${lastSend.messages.second_option}`,
+          phone_number: number,
+          file_url: "",
         });
       }
     });
@@ -188,19 +154,29 @@ export class InitializeListenerUseCase {
     existsCompany.client.on("message_ack", async (msg) => {
       if (msg.to.includes("@g.us")) return;
       logger.info(`Line: ${company.name}, message_ack: ${msg.ack}`);
-      const sendMessage = await prisma.send_messages_api
+      const isSended = await prisma.chat_history.findFirst({
+        where: { messageId: msg.id.id },
+      });
+      if (!isSended) return;
+
+      const updateAckApi = await prisma.chat_history
         .update({
           data: { ack: msg.ack },
-          where: { message_id: msg.id.id },
+          where: { id: isSended.id },
         })
         .catch((e) =>
           logger.error(`Line: ${company.name}, updateAckApi: ${e}`)
         );
-      if (!sendMessage) return;
+      if (!updateAckApi) return;
+
+      const existsShipping = await prisma.shipping_history.findFirst({
+        where: { protocol: isSended.messageId },
+      });
+      if (!existsShipping) return;
       await prisma.shipping_history
         .update({
           data: { status: msg.ack },
-          where: { protocol: sendMessage.id },
+          where: { protocol: isSended.messageId },
         })
         .catch((e) =>
           logger.error(`Line: ${company.name}, updateAckStartMessage: ${e}`)

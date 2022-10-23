@@ -1,5 +1,7 @@
 import { MessageMedia } from "whatsapp-web.js";
 import { prisma } from "../../../../database/prisma";
+import { logger } from "../../../../logger";
+import { saveChatHistory } from "../../../../utils/save-chat-history";
 import { InMemoryInstanceRepository } from "../../repositories/in-memory-instance-repository";
 
 interface SendMessageUseCaseDTO {
@@ -10,8 +12,8 @@ interface SendMessageUseCaseDTO {
   id_message?: number;
   id_group?: number;
   id_section?: number;
-  id_survey?: number;
   id_user?: number;
+  is_startmessage?: boolean;
 }
 
 export class SendMessageUsecase {
@@ -24,11 +26,13 @@ export class SendMessageUsecase {
     id_group,
     id_section,
     id_user,
+    is_startmessage,
   }: SendMessageUseCaseDTO) {
     if (!access_key) throw new Error("Stystem needs access_key");
     if (!message) throw new Error("System needs message");
     if (!phone_number) throw new Error("System needs phone_number");
     let body, options;
+    console.log(message);
 
     const inMemoryInstanceRepository = InMemoryInstanceRepository.getInstance();
 
@@ -53,6 +57,7 @@ export class SendMessageUsecase {
     });
     if (!contact) throw new Error("This phone_number doesn't exists");
     const chatId = contact._serialized;
+    const number = contact.user;
 
     //IF ATTACH FILE
     if (file_url) {
@@ -71,29 +76,28 @@ export class SendMessageUsecase {
 
     if (!sendMessage) throw new Error("Cannot send your message");
 
-    const createMessage = await prisma.send_messages_api.create({
-      data: {
-        access_key,
-        ack: sendMessage.ack,
-        destiny: chatId,
-        message_body: options?.caption ?? message,
-        message_id: sendMessage.id.id,
-        sender: sendMessage.from,
-        timestamp: sendMessage.timestamp,
-        file_url,
-      },
+    await saveChatHistory({
+      msg: sendMessage,
+      access_key: existsCompany.access_key,
     });
-    await prisma.shipping_history.create({
+    logger.info(
+      `Line: ${company.name}, saveMessageHistory: ${sendMessage.from}`
+    );
+
+    const createMessage = await prisma.shipping_history.create({
       data: {
         id_company: company.id,
         message,
         status: sendMessage.ack,
         protocol: sendMessage.id.id,
-        phone_number: phone_number,
+        phone_number: number,
         id_message,
         id_group,
         id_section,
         id_user,
+        isStartMessage: is_startmessage,
+        hour: new Date(),
+        date: new Date(),
       },
     });
 

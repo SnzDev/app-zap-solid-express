@@ -16,7 +16,7 @@ export class InitializeInstanceUseCase {
 
     if (!company) throw new Error("Instance does not exists");
     if (!companyExists)
-      companyExists = await inMemoryInstanceRepository.create({ access_key });
+      companyExists = inMemoryInstanceRepository.create({ access_key });
 
     if (!companyExists) throw new Error("Instance not created");
 
@@ -53,14 +53,20 @@ export class InitializeInstanceUseCase {
 
         companyExists?.client.once("ready", () => {
           logger.info(`Line: ${company.name}, ready to use`);
+          const clientInfo = companyExists?.client.info;
           prisma.company
             .update({
-              where: { access_key: access_key },
-              data: { qr: "" },
+              data: {
+                app: clientInfo?.pushname,
+                line: clientInfo?.wid.user,
+                qr: "",
+              },
+              where: { access_key: companyExists?.access_key },
             })
             .then(() => logger.info(`Line: ${company.name}, qrcode removed`))
+
             .catch((e) =>
-              logger.error(`Line: ${company.name}, qrUpdateError: ${e}`)
+              logger.error(`Line: ${company.name}, updateClientInfo: ${e}`)
             );
           resolve(true);
         });

@@ -1,4 +1,3 @@
-import { logger } from "../../../../logger";
 import { InMemoryInstanceRepository } from "../../repositories/in-memory-instance-repository";
 
 interface CheckNumberExistsUseCaseDTO {

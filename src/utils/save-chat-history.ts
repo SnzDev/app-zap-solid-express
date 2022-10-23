@@ -36,15 +36,12 @@ export async function saveChatHistory({ msg, access_key }: SaveChatHistoryDTO) {
     //@ts-ignore
   } = msg["_data"];
 
-  console.log(
-    hasReaction,
-    isDynamicReplyButtonsMsg,
-    quotedStanzaID,
-    quotedParticipant
-  );
-
   const messageId = msg.id.id;
   try {
+    const chatHistory = await prisma.chat_history.findFirst({
+      where: { messageId },
+    });
+    if (chatHistory) return;
     await prisma.chat_history.create({
       data: {
         access_key,

@@ -13,6 +13,7 @@ export class SendMessageController {
       id_group,
       id_section,
       id_user,
+      is_startmessage,
     } = request.body;
     const { access_key } = request.params;
 
@@ -27,6 +28,7 @@ export class SendMessageController {
         id_message,
         id_section,
         id_user,
+        is_startmessage,
       });
       return response.json(sendMessage);
     } catch (e) {
