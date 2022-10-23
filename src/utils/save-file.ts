@@ -18,12 +18,10 @@ export async function SaveIfHaveFile(access_key: string, msg: Message) {
       const format = mime.extension(media.mimetype);
 
       try {
-        fs.writeFileSync(
-          `${folder}/${msg.timestamp}-${msg.id.id}.${format}`,
-          media.data,
-          { encoding: "base64" }
-        );
-        return `${folder}/${msg.timestamp}-${msg.id.id}.${format}`;
+        fs.writeFileSync(`${folder}/${msg.id.id}.${format}`, media.data, {
+          encoding: "base64",
+        });
+        return `${folder}/${msg.id.id}.${format}`;
       } catch (e) {
         logger.error(`DownloadMedia: ${e}`);
       }

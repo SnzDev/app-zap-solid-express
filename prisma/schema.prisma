@@ -9,11 +9,11 @@ datasource db {
 
 model send_messages_api {
   id            String   @id @default(uuid())
-  company       company  @relation(fields:[access_key], references:[access_key])
+  company       company  @relation(fields: [access_key], references: [access_key])
   access_key    String
   file_url      String?
   ack           Int
-  message_id    String @unique
+  message_id    String   @unique
   message_body  String
   sender        String
   destiny       String
@@ -29,40 +29,65 @@ model send_messages_api {
 }
 
 model receive_messages_api {
-  id    String @id @default(uuid())
-  company       company  @relation(fields:[access_key], references:[access_key])
-  access_key    String
-  from          String
-  to            String
-  message_id    String @unique
-  message_body  String
-  device_type   String
-  has_media     Boolean
-  file_url      String?
-  timestamp     Int
-  created_at    DateTime @default(now())
-  updated_at    DateTime @updatedAt
+  id           String   @id @default(uuid())
+  company      company  @relation(fields: [access_key], references: [access_key])
+  access_key   String
+  from         String
+  to           String
+  message_id   String   @unique
+  message_body String
+  device_type  String
+  has_media    Boolean
+  file_url     String?
+  timestamp    Int
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
 }
 
+model chat_history {
+  id           String   @id @default(uuid())
+  company      company  @relation(fields: [access_key], references: [access_key])
+  access_key   String
+  ack          Int
+  hasMedia     Boolean  @default(false) @map("has_media")
+  body         String   @db.LongText
+  type         String
+  timestamp    Int
+  from         String
+  to           String
+  author       String
+  deviceType   String   @map("device_type")
+  isForwarded  Boolean  @map("is_forwarded")
+  fromMe       Boolean  @default(false) @map("from_me")
+  hasQuotedMsg Boolean  @default(false) @map("has_quoted_msg")
+  vCards       Json?    @map("v_cards")
+  mentionedIds Json?    @map("mentioned_ids")
+  isGif        Boolean  @default(false) @map("is_gif")
+  isEphemeral  Boolean  @default(false) @map("is_ephemeral")
+  links        Json?
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+}
 
 model company {
-  id             BigInt                  @id @default(autoincrement()) @db.UnsignedBigInt
-  name           String                  @db.VarChar(200)
-  active         Boolean
-  line           String
-  app            String                  @db.VarChar(200)
-  access_key     String                  @unique @db.VarChar(200)
-  port           Int                     @default(443)
-  webhook_url    String?                 @db.VarChar(250)
-  qr             String?                 @db.VarChar(255)
-  id_external    String?                 @db.VarChar(255)
-  url_line       String                  @default("zap.startmessage.com.br") @db.VarChar(255)
-  created_at     DateTime                @default(now())
-  updated_at     DateTime                @updatedAt
+  id          BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
+  name        String   @db.VarChar(200)
+  active      Boolean
+  line        String
+  app         String   @db.VarChar(200)
+  access_key  String   @unique @db.VarChar(200)
+  port        Int      @default(443)
+  webhook_url String?  @db.VarChar(250)
+  qr          String?  @db.VarChar(255)
+  id_external String?  @db.VarChar(255)
+  url_line    String   @default("zap.startmessage.com.br") @db.VarChar(255)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
 
-  webhook_method company_webhook_method?
-  send_messages_api send_messages_api []
-  recieve_messages_api receive_messages_api []
+  webhook_method       company_webhook_method?
+  send_messages_api    send_messages_api[]
+  recieve_messages_api receive_messages_api[]
+  chat_history         chat_history[]
 }
 
 model clients {
@@ -73,7 +98,7 @@ model clients {
   cpf              String? @db.VarChar(100)
   email            String? @db.VarChar(100)
   birthday         String? @db.VarChar(100)
-  receive_messages Boolean 
+  receive_messages Boolean
   exists           Boolean @default(true)
   id_external      String? @db.VarChar(255)
 }
