@@ -1,25 +1,31 @@
-import { app } from ".";
 import { logger } from "./logger";
-import { Server } from "socket.io";
-import http from "http";
+import express, { Request, Response, NextFunction } from "express";
+import { routes } from "./routes";
+import cors from "cors";
+import "express-async-errors";
 
-const serverHttp = http.createServer(app);
+const app = express();
+app.use(cors());
+app.use(express.json());
 
-serverHttp.listen(3330, () => logger.info("Server is running!"));
-export const io = new Server(serverHttp);
+app.use(routes);
 
-io.on("connection", (socket) => {
-  logger.info(`WEBSOCKET: ${socket.id} - listen to qrcode`);
+app.use(
+  (err: Error, request: Request, response: Response, next: NextFunction) => {
+    if (err instanceof Error) {
+      logger.error(`status: 400: ${err}`);
 
-  socket.on("waiting", (data) => {
-    logger.info(`WEBSOCKET: ${socket.id} - ${data} waiting qrcode`);
-  });
+      return response.status(400).json({
+        status: 400,
+        message: err.message,
+      });
+    }
 
-  socket.on("connected", (data) => {
-    logger.info(`WEBSOCKET: ${socket.id} - ${data}`);
-  });
-});
-
-io.on("close", (socket) => {
-  logger.info(`WEBSOCKET: ${socket.id} - disconnected socket`);
-});
+    logger.error(`status: 500: ${err}`);
+    return response.status(500).json({
+      status: "error",
+      message: "Internal server error",
+    });
+  }
+);
+app.listen(3330, () => logger.info("Server is running!"));

@@ -8,62 +8,96 @@ datasource db {
 }
 
 model send_messages_api {
-  id            String   @id @default(uuid())
-  company       company  @relation(fields:[access_key], references:[access_key])
+  id            String    @id @default(uuid())
+  company       company   @relation(fields: [access_key], references: [access_key])
   access_key    String
   file_url      String?
   ack           Int
-  message_id    String
+  message_id    String    @unique
   message_body  String
   sender        String
   destiny       String
-  is_survey     Boolean? @default(false)
+  is_survey     Boolean?  @default(false)
   first_option  String?
   first_answer  String?
   second_option String?
   second_answer String?
   response      String?
   timestamp     Int
-  created_at    DateTime @default(now())
-  updated_at    DateTime @updatedAt
+  created_at    DateTime? @default(now())
+  updated_at    DateTime? @updatedAt
 }
 
 model receive_messages_api {
-  id    String @id @default(uuid())
-  company       company  @relation(fields:[access_key], references:[access_key])
-  access_key    String
-  from          String
-  to            String
-  message_id    String
-  message_body  String
-  device_type   String
-  has_media     Boolean
-  file_url      String?
-  timestamp     Int
-  created_at    DateTime @default(now())
-  updated_at    DateTime @updatedAt
+  id           String    @id @default(uuid())
+  company      company   @relation(fields: [access_key], references: [access_key])
+  access_key   String
+  from         String
+  to           String
+  message_id   String    @unique
+  message_body String
+  device_type  String
+  has_media    Boolean
+  file_url     String?
+  timestamp    Int
+  created_at   DateTime? @default(now())
+  updated_at   DateTime? @updatedAt
 }
 
+model chat_history {
+  id                       String             @id @default(uuid())
+  company                  company            @relation(fields: [access_key], references: [access_key])
+  access_key               String
+  messageId                String             @unique @map("message_id")
+  ack                      Int
+  hasMedia                 Boolean            @default(false) @map("has_media")
+  body                     String             @db.LongText
+  type                     String
+  timestamp                Int
+  from                     String
+  to                       String
+  author                   String?
+  deviceType               String?            @map("device_type")
+  isForwarded              Boolean            @map("is_forwarded")
+  fromMe                   Boolean            @default(false) @map("from_me")
+  hasQuotedMsg             Boolean            @default(false) @map("has_quoted_msg")
+  isGif                    Boolean            @default(false) @map("is_gif")
+  isEphemeral              Boolean            @default(false) @map("is_ephemeral")
+  hasReaction              Boolean            @default(false) @map("has_reaction")
+  isDynamicReplyButtonsMsg Boolean            @default(false) @map("is_dynamic_reply_buttons_msg")
+  vCards                   Json?              @map("v_cards")
+  mentionedIds             Json?              @map("mentioned_ids")
+  links                    Json?
+  location                 Json?
+  quotedStanzaID           String?
+  quotedParticipant        String?
+  created_at               DateTime           @default(now())
+  updated_at               DateTime           @updatedAt
+  shipping_history         shipping_history[]
+}
 
 model company {
-  id             BigInt                  @id @default(autoincrement()) @db.UnsignedBigInt
-  name           String                  @db.VarChar(200)
-  active         Boolean
-  line           BigInt
-  app            String                  @db.VarChar(200)
-  access_key     String              @unique @db.VarChar(200)
-  port           Int
-  webhook_url    String?                 @db.VarChar(250)
-  webhook_method company_webhook_method?
-  id_external    String?                 @db.VarChar(255)
-  url_line       String?                 @db.VarChar(255)
+  id          Int     @id @default(autoincrement())
+  name        String  @db.VarChar(200)
+  active      Boolean
+  line        String
+  app         String  @db.VarChar(200)
+  access_key  String  @unique @db.VarChar(200)
+  port        Int     @default(443)
+  webhook_url String? @db.VarChar(250)
+  qr          String? @db.VarChar(255)
+  id_external String? @db.VarChar(255)
+  url_line    String  @default("zap.startmessage.com.br") @db.VarChar(255)
 
-  send_messages_api send_messages_api []
-  recieve_messages_api receive_messages_api []
+  webhook_method       company_webhook_method?
+  send_messages_api    send_messages_api[]
+  recieve_messages_api receive_messages_api[]
+  chat_history         chat_history[]
+  shipping_history     shipping_history[]
 }
 
 model clients {
-  id               BigInt  @id @default(autoincrement()) @db.UnsignedBigInt
+  id               Int     @id @default(autoincrement())
   id_company       Int
   name             String  @db.VarChar(100)
   phone_number     String  @db.VarChar(19)
@@ -71,13 +105,14 @@ model clients {
   email            String? @db.VarChar(100)
   birthday         String? @db.VarChar(100)
   receive_messages Boolean
+  exists           Boolean @default(true)
   id_external      String? @db.VarChar(255)
 }
 
 model clients_group {
-  id            BigInt  @id @default(autoincrement()) @db.UnsignedBigInt
-  group_id      BigInt
-  client_id     BigInt
+  id            Int     @id @default(autoincrement())
+  group_id      Int
+  client_id     Int
   extra_field_1 String? @db.VarChar(200)
   extra_field_2 String? @db.VarChar(200)
   extra_field_3 String? @db.VarChar(200)
@@ -85,40 +120,41 @@ model clients_group {
 }
 
 model config {
-  id         BigInt @id @default(autoincrement()) @db.UnsignedBigInt
+  id         Int    @id @default(autoincrement())
   id_company Int
-  line       BigInt
+  line       Int
   app        String @db.VarChar(200)
   access_key String @db.VarChar(200)
 }
 
 model failed_jobs {
-  id         BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
-  uuid       String   @db.VarChar(255)
-  connection String   @db.Text
-  queue      String   @db.Text
-  payload    String   @db.LongText
-  exception  String   @db.LongText
-  failed_at  DateTime @default(now()) @db.Timestamp(0)
+  id         Int       @id @default(autoincrement())
+  uuid       String    @db.VarChar(255)
+  connection String    @db.Text
+  queue      String    @db.Text
+  payload    String    @db.LongText
+  exception  String    @db.LongText
+  failed_at  DateTime? @default(now()) @db.Timestamp(0)
 }
 
 model files {
-  id         BigInt     @id @default(autoincrement()) @db.UnsignedBigInt
+  id         Int        @id @default(autoincrement())
   id_company Int
   url        String?    @db.VarChar(250)
   type       files_type
 }
 
 model group {
-  id                   BigInt                      @id @default(autoincrement()) @db.UnsignedBigInt
+  id                   Int                         @id @default(autoincrement())
   id_company           Int
   name                 String                      @db.VarChar(255)
   interne_shift        group_interne_shift?
   interne_shift_number group_interne_shift_number?
+  shipping_history     shipping_history[]
 }
 
 model jobs {
-  id           BigInt @id @default(autoincrement()) @db.UnsignedBigInt
+  id           Int    @id @default(autoincrement())
   queue        String @db.VarChar(255)
   payload      String @db.LongText
   attempts     Int    @db.UnsignedTinyInt
@@ -128,16 +164,17 @@ model jobs {
 }
 
 model messages {
-  id            BigInt  @id @default(autoincrement()) @db.UnsignedBigInt
-  id_company    Int
-  name          String? @db.VarChar(100)
-  message       String  @db.Text
-  is_survey     Boolean
-  first_option  String? @db.VarChar(50)
-  first_answer  String? @db.VarChar(250)
-  second_option String? @db.VarChar(50)
-  second_answer String? @db.VarChar(250)
-  id_file       Int?
+  id               Int                @id @default(autoincrement())
+  id_company       Int
+  name             String?            @db.VarChar(100)
+  message          String             @db.Text
+  is_survey        Boolean
+  first_option     String?            @db.VarChar(50)
+  first_answer     String?            @db.VarChar(250)
+  second_option    String?            @db.VarChar(50)
+  second_answer    String?            @db.VarChar(250)
+  id_file          Int?
+  shipping_history shipping_history[]
 }
 
 model migrations {
@@ -147,13 +184,14 @@ model migrations {
 }
 
 model sections {
-  id         BigInt @id @default(autoincrement()) @db.UnsignedBigInt
-  id_company Int
-  name       String @db.VarChar(100)
+  id               Int                @id @default(autoincrement())
+  id_company       Int
+  name             String             @db.VarChar(100)
+  shipping_history shipping_history[]
 }
 
 model send_history {
-  id             BigInt               @id @default(autoincrement()) @db.UnsignedBigInt
+  id             Int                  @id @default(autoincrement())
   id_company     Int
   id_user        Int
   id_group       Int
@@ -169,43 +207,52 @@ model send_history {
 }
 
 model settings {
-  id         BigInt  @id @default(autoincrement()) @db.UnsignedBigInt
+  id         Int     @id @default(autoincrement())
   id_company Int
   fixed_ddd  Boolean
   ddd        Int?
 }
 
 model shipping_history {
-  id                      BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  id                      Int          @id @default(autoincrement())
   id_company              Int
+  company                 company?     @relation(fields: [id_company], references: [id])
   id_group                Int?
+  groups                  group?       @relation(fields: [id_group], references: [id])
   id_survey               Int?
-  id_message              Int
+  surveys                 survey?      @relation(fields: [id_survey], references: [id])
+  id_message              Int?
+  messages                messages?    @relation(fields: [id_message], references: [id])
   id_section              Int?
+  sections                sections?    @relation(fields: [id_section], references: [id])
   id_user                 Int?
-  message                 String    @db.Text
-  phone_number            BigInt
-  hour                    DateTime  @db.Time(0)
-  date                    DateTime  @db.Date
-  protocol                String?   @unique @db.VarChar(200)
+  message                 String       @db.Text
+  phone_number            String
+  hour                    DateTime?    @db.Time(0)
+  date                    DateTime?    @db.Date
+  protocol                String       @unique @db.VarChar(200)
+  chatHistory             chat_history @relation(fields: [protocol], references: [messageId])
   question_answer_correct Boolean?
-  question_response       String?   @db.Text
-  question_response_date  DateTime? @db.Timestamp(0)
+  question_response       String?      @db.Text
+  question_response_date  DateTime?    @db.Timestamp(0)
   status                  Int?
+  isStartMessage          Boolean      @default(false) @map("is_startmessage")
 }
 
 model survey {
-  id         BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
+  id         Int       @id @default(autoincrement())
   id_company Int
-  id_group   Int      @default(0)
-  id_message Int      @default(0)
+  id_group   Int       @default(0)
+  id_message Int       @default(0)
   id_section Int?
-  hour       DateTime @db.Time(0)
-  date       DateTime @db.Date
+  hour       DateTime? @db.Time(0)
+  date       DateTime? @db.Date
+
+  shipping_history shipping_history[]
 }
 
 model users {
-  id       BigInt        @id @default(autoincrement()) @db.UnsignedBigInt
+  id       Int           @id @default(autoincrement())
   name     String        @db.VarChar(255)
   email    String        @unique(map: "users_email_unique") @db.VarChar(250)
   password String        @db.VarChar(255)
