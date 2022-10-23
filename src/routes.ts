@@ -7,7 +7,6 @@ import { LogoutInstanceController } from "./use-cases/logout-instance/logout-ins
 import { CheckNumberExistsController } from "./use-cases/check-number-exists/check-number-exists-controller";
 import { SendMessageController } from "./use-cases/send-message/send-message-controller";
 import { SendSurveyController } from "./use-cases/send-survey/send-survey-controller";
-import { InitializeAllListenersController } from "./use-cases/initialize-all-listeners/initialize-all-listeners-controller";
 
 const checkNumberExistsController = new CheckNumberExistsController();
 const sendMessageController = new SendMessageController();
@@ -17,15 +16,12 @@ const destroyInstanceController = new DestroyInstanceController();
 const logoutInstanceController = new LogoutInstanceController();
 const initializeInstanceController = new InitializeInstanceController();
 const initializeAllInstancesController = new InitializeAllInstancesController();
-const initializeAllListenersController = new InitializeAllListenersController();
 const instance = Router();
 
 //INITIALIZE WHEN THE SYSTEM START
-const init = async () => {
+(async () => {
   await initializeAllInstancesController.handle();
-  initializeAllListenersController.handle();
-};
-init();
+})();
 
 instance.post("/:access_key/init", initializeInstanceController.handle);
 

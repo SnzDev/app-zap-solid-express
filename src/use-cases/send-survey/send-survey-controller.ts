@@ -1,8 +1,8 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import { SendSurveyUseCase } from "./send-survey-use-case";
 
 export class SendSurveyController {
-  async handle(request: Request, response: Response) {
+  async handle(request: Request, response: Response, next: NextFunction) {
     const {
       phone_number,
       message,
@@ -16,17 +16,21 @@ export class SendSurveyController {
     const { access_key } = request.params;
 
     const sendSurveyUseCase = new SendSurveyUseCase();
-    const data = await sendSurveyUseCase.execute({
-      access_key,
-      first_answer,
-      first_option,
-      message,
-      phone_number,
-      second_answer,
-      second_option,
-      file_url,
-      use_buttons,
-    });
-    return response.json(data);
+    try {
+      const data = await sendSurveyUseCase.execute({
+        access_key,
+        first_answer,
+        first_option,
+        message,
+        phone_number,
+        second_answer,
+        second_option,
+        file_url,
+        use_buttons,
+      });
+      return response.json(data);
+    } catch (e) {
+      next(e);
+    }
   }
 }

@@ -12,7 +12,7 @@ import {
 } from "./types/instance-dto";
 
 export interface InstanceRepository {
-  create(props: InstanceCreateDTO): Promise<InstanceModelDTO | undefined>;
+  create(props: InstanceCreateDTO): InstanceModelDTO;
   findAll(): InstanceModelDTO[];
   findOne(props: InstanceFindOneDTO): InstanceModelDTO | undefined;
   destroy(props: InstanceDestroyDTO): Promise<void>;
@@ -20,5 +20,4 @@ export interface InstanceRepository {
   status(props: InstanceStatusDTO): Promise<InstanceStatusResponseDTO>;
   existsNumber(props: InstanceExistsNumberDTO): Promise<ContactId | null>;
   sendMessage(props: SendMessageDTO): Promise<WAWebJS.Message | void>;
-  removeInstance(access_key: string): void;
 }

@@ -47,6 +47,6 @@
     "mime-types": "^2.1.35",
     "pino": "^8.6.1",
     "pino-http": "^8.2.1",
-    "whatsapp-web.js": "1.18.0"
+    "whatsapp-web.js": "github:pedroslopez/whatsapp-web.js#fix-buttons-list"
   }
 }

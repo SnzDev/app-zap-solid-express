@@ -3,7 +3,7 @@ import { InMemoryInstanceRepository } from "../../repositories/in-memory/in-memo
 export class LogoutInstanceUseCase {
   async execute(access_key: string) {
     if (!access_key) throw new Error("System needs access_key");
-    const inMemoryInstanceRepository = new InMemoryInstanceRepository();
+    const inMemoryInstanceRepository = InMemoryInstanceRepository.getInstance();
 
     const existsCompany = inMemoryInstanceRepository.findOne({
       access_key,
@@ -15,9 +15,11 @@ export class LogoutInstanceUseCase {
     });
 
     if (instanceStatus.status === "NOT_STARTED")
-      throw new Error("Instance already destroyed");
+      throw new Error("Instance is not started");
+
+    if (instanceStatus.status !== "CONNECTED")
+      throw new Error("Instance is not connected");
 
     await inMemoryInstanceRepository.logout({ client: existsCompany.client });
-    inMemoryInstanceRepository.removeInstance(access_key);
   }
 }

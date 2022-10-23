@@ -51,14 +51,14 @@ model company {
   active         Boolean
   line           String
   app            String                  @db.VarChar(200)
-  access_key     String              @unique @db.VarChar(200)
-  port           Int      @default(443)
+  access_key     String                  @unique @db.VarChar(200)
+  port           Int                     @default(443)
   webhook_url    String?                 @db.VarChar(250)
-  qr             String?
+  qr             String?                 @db.VarChar(255)
   id_external    String?                 @db.VarChar(255)
-  url_line       String  @default("zap.startmessage.com.br") @db.VarChar(255)
-  created_at     DateTime @default(now())
-  updated_at     DateTime @updatedAt
+  url_line       String                  @default("zap.startmessage.com.br") @db.VarChar(255)
+  created_at     DateTime                @default(now())
+  updated_at     DateTime                @updatedAt
 
   webhook_method company_webhook_method?
   send_messages_api send_messages_api []

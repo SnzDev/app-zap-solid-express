@@ -35,7 +35,7 @@ export class SendSurveyUseCase {
     if (!second_answer) throw new Error("System needs second_answer");
 
     let body, options;
-    const inMemoryInstanceRepository = new InMemoryInstanceRepository();
+    const inMemoryInstanceRepository = InMemoryInstanceRepository.getInstance();
 
     const companyExists = inMemoryInstanceRepository.findOne({
       access_key,

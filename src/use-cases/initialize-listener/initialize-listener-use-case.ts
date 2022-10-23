@@ -12,27 +12,40 @@ export class InitializeListenerUseCase {
 
     const existsCompany = inMemoryInstanceRepository.findOne({ access_key });
     if (!existsCompany) throw new Error("Instance does not exists");
-
-    const company = await prisma.company.findFirst({
-      where: { access_key: existsCompany.access_key },
+    const company = await prisma.company.findFirstOrThrow({
+      where: { access_key },
     });
 
     existsCompany.client.on("qr", (qr) => {
-      logger.info(`Line: ${company?.app}, qrcode update`);
-      prisma.company.update({
-        where: { access_key: existsCompany.access_key },
-        data: { qr: qr },
-      });
+      prisma.company
+        .update({
+          where: { access_key: existsCompany.access_key },
+          data: { qr: qr },
+        })
+        .then(() => logger.info(`Line: ${company.name}, qrcode update`))
+        .catch((e) =>
+          logger.error(`Line: ${company.name}, qrUpdateError: ${e}`)
+        );
     });
 
-    existsCompany.client.once("ready", () => {
+    existsCompany.client.once("ready", async () => {
       existsCompany.client.removeListener("qr", () => {});
-
-      logger.info(`Line: ${company?.app}, ready to use`);
-      prisma.company.update({
+      const clientInfo = existsCompany.client.info;
+      await prisma.company.update({
+        data: { app: clientInfo.pushname, line: clientInfo.wid.user },
         where: { access_key: existsCompany.access_key },
-        data: { qr: null },
       });
+
+      logger.info(`Line: ${company.name}, ready to use`);
+      prisma.company
+        .update({
+          where: { access_key: access_key },
+          data: { qr: "" },
+        })
+        .then(() => logger.info(`Line: ${company.name}, qrcode removed`))
+        .catch((e) =>
+          logger.error(`Line: ${company.name}, qrUpdateError: ${e}`)
+        );
     });
 
     // instance.client.on("message_create", async (msg) => {
@@ -62,9 +75,9 @@ export class InitializeListenerUseCase {
       if (msg.isStatus || msg.from.includes("@g.us")) return;
       const file_url = await SaveIfHaveFile(existsCompany.access_key, msg);
 
-      if (file_url) logger.info(`Line: ${company?.app}, File: ${file_url}`);
+      if (file_url) logger.info(`Line: ${company.name}, File: ${file_url}`);
 
-      logger.info(`Line: ${company?.app}, message: ${msg.from}`);
+      logger.info(`Line: ${company.name}, message: ${msg.from}`);
 
       await prisma.receive_messages_api.create({
         data: {
@@ -159,7 +172,7 @@ export class InitializeListenerUseCase {
 
     existsCompany.client.on("message_ack", async (msg) => {
       if (msg.to.includes("@g.us")) return;
-      logger.info(`Line: ${company?.app}, message_ack: ${msg.ack}`);
+      logger.info(`Line: ${company.name}, message_ack: ${msg.ack}`);
       const sendMessage = await prisma.send_messages_api.update({
         data: { ack: msg.ack },
         where: { message_id: msg.id.id },
@@ -172,7 +185,7 @@ export class InitializeListenerUseCase {
     });
 
     existsCompany.client.on("disconnected", (disconnected) => {
-      logger.info(`Line: ${company?.app}, disconnected: ${disconnected}`);
+      logger.info(`Line: ${company.name}, disconnected: ${disconnected}`);
     });
   }
 }

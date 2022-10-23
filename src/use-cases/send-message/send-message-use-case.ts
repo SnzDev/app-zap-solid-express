@@ -21,7 +21,7 @@ export class SendMessageUsecase {
     if (!phone_number) throw new Error("System needs phone_number");
     let body, options;
 
-    const inMemoryInstanceRepository = new InMemoryInstanceRepository();
+    const inMemoryInstanceRepository = InMemoryInstanceRepository.getInstance();
 
     const existsCompany = inMemoryInstanceRepository.findOne({
       access_key,

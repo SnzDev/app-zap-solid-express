@@ -21,15 +21,6 @@ export class InMemoryInstanceRepository implements InstanceRepository {
   constructor() {
     this.instanceRepository = [];
   }
-  removeInstance(access_key: string): void {
-    const instanceExists = this.instanceRepository.find((value) => {
-      value.access_key === access_key;
-    });
-    if (!instanceExists) return;
-
-    const index = this.instanceRepository.indexOf(instanceExists);
-    this.instanceRepository.splice(index, 1);
-  }
 
   public static getInstance() {
     if (!InMemoryInstanceRepository.INSTANCE) {
@@ -38,7 +29,7 @@ export class InMemoryInstanceRepository implements InstanceRepository {
     return InMemoryInstanceRepository.INSTANCE;
   }
 
-  async create({ access_key }: InstanceCreateDTO): Promise<InstanceModelDTO> {
+  create({ access_key }: InstanceCreateDTO): InstanceModelDTO {
     const data = {
       access_key,
       client: ModelInstance(access_key),
@@ -59,12 +50,14 @@ export class InMemoryInstanceRepository implements InstanceRepository {
 
   async destroy({ client }: InstanceDestroyDTO): Promise<void> {
     logger.info(`Destroy`);
-    return await client.destroy();
+    await client.destroy();
+    await client.removeAllListeners();
   }
 
   async logout({ client }: InstanceLogoutDTO): Promise<void> {
     logger.info(`Logout`);
-    return await client.logout();
+    await client.logout();
+    await client.removeAllListeners();
   }
 
   async status({
@@ -73,7 +66,9 @@ export class InMemoryInstanceRepository implements InstanceRepository {
     const response = await client
       .getState()
       .then((response) => response ?? "ON_RUNNING")
-      .catch((error): "NOT_STARTED" => "NOT_STARTED");
+      .catch((error): "NOT_STARTED" => {
+        return "NOT_STARTED";
+      });
     return { status: response };
   }
   async existsNumber({
