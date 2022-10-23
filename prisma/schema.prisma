@@ -45,28 +45,34 @@ model receive_messages_api {
 }
 
 model chat_history {
-  id           String   @id @default(uuid())
-  company      company  @relation(fields: [access_key], references: [access_key])
-  access_key   String
-  ack          Int
-  hasMedia     Boolean  @default(false) @map("has_media")
-  body         String   @db.LongText
-  type         String
-  timestamp    Int
-  from         String
-  to           String
-  author       String
-  deviceType   String   @map("device_type")
-  isForwarded  Boolean  @map("is_forwarded")
-  fromMe       Boolean  @default(false) @map("from_me")
-  hasQuotedMsg Boolean  @default(false) @map("has_quoted_msg")
-  vCards       Json?    @map("v_cards")
-  mentionedIds Json?    @map("mentioned_ids")
-  isGif        Boolean  @default(false) @map("is_gif")
-  isEphemeral  Boolean  @default(false) @map("is_ephemeral")
-  links        Json?
-  created_at   DateTime @default(now())
-  updated_at   DateTime @updatedAt
+  id                       String   @id @default(uuid())
+  company                  company  @relation(fields: [access_key], references: [access_key])
+  access_key               String
+  messageId                String   @map("message_id")
+  ack                      Int
+  hasMedia                 Boolean  @default(false) @map("has_media")
+  body                     String   @db.LongText
+  type                     String
+  timestamp                Int
+  from                     String
+  to                       String
+  author                   String?
+  deviceType               String?  @map("device_type")
+  isForwarded              Boolean  @map("is_forwarded")
+  fromMe                   Boolean  @default(false) @map("from_me")
+  hasQuotedMsg             Boolean  @default(false) @map("has_quoted_msg")
+  isGif                    Boolean  @default(false) @map("is_gif")
+  isEphemeral              Boolean  @default(false) @map("is_ephemeral")
+  hasReaction              Boolean  @default(false) @map("has_reaction")
+  isDynamicReplyButtonsMsg Boolean  @default(false) @map("is_dynamic_reply_buttons_msg")
+  vCards                   Json?    @map("v_cards")
+  mentionedIds             Json?    @map("mentioned_ids")
+  links                    Json?
+  location                 Json?
+  quotedStanzaID           String?
+  quotedParticipant        String?
+  created_at               DateTime @default(now())
+  updated_at               DateTime @updatedAt
 }
 
 model company {
