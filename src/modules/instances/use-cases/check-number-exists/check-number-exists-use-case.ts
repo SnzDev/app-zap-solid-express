@@ -1,5 +1,5 @@
-import { logger } from "../../logger";
-import { InMemoryInstanceRepository } from "../../repositories/in-memory/in-memory-instance-repository";
+import { logger } from "../../../../logger";
+import { InMemoryInstanceRepository } from "../../repositories/in-memory-instance-repository";
 
 interface CheckNumberExistsUseCaseDTO {
   access_key: string;

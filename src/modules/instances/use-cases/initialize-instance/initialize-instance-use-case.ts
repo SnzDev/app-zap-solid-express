@@ -1,6 +1,6 @@
-import { prisma } from "../../database/prisma";
-import { logger } from "../../logger";
-import { InMemoryInstanceRepository } from "../../repositories/in-memory/in-memory-instance-repository";
+import { prisma } from "../../../../database/prisma";
+import { logger } from "../../../../logger";
+import { InMemoryInstanceRepository } from "../../repositories/in-memory-instance-repository";
 import { InitializeListenerUseCase } from "../initialize-listener/initialize-listener-use-case";
 
 export class InitializeInstanceUseCase {

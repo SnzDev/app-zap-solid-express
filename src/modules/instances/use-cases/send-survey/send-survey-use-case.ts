@@ -1,7 +1,7 @@
 import { Buttons, MessageMedia } from "whatsapp-web.js";
-import { prisma } from "../../database/prisma";
-import { logger } from "../../logger";
-import { InMemoryInstanceRepository } from "../../repositories/in-memory/in-memory-instance-repository";
+import { prisma } from "../../../../database/prisma";
+import { logger } from "../../../../logger";
+import { InMemoryInstanceRepository } from "../../repositories/in-memory-instance-repository";
 
 interface SendSurveyUseCaseDTO {
   access_key: string;

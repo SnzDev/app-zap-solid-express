@@ -1,7 +1,7 @@
 import WAWebJS, { ContactId } from "whatsapp-web.js";
-import { logger } from "../../logger";
-import { ModelInstance } from "../../model/model-instance";
-import { InstanceRepository } from "../instance-repository";
+import { logger } from "../../../logger";
+import { ModelInstance } from "../model/instance-client";
+import { InstanceRepository } from "../model/instance-repository";
 import {
   InstanceCreateDTO,
   InstanceDestroyDTO,
@@ -12,7 +12,7 @@ import {
   InstanceStatusDTO,
   InstanceStatusResponseDTO,
   SendMessageDTO,
-} from "../types/instance-dto";
+} from "./types/instance-dto";
 
 export class InMemoryInstanceRepository implements InstanceRepository {
   private instanceRepository: InstanceModelDTO[];

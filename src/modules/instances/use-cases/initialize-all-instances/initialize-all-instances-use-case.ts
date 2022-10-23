@@ -1,4 +1,4 @@
-import { prisma } from "../../database/prisma";
+import { prisma } from "../../../../database/prisma";
 import { InitializeInstanceUseCase } from "../initialize-instance/initialize-instance-use-case";
 
 class InitializeAllInstancesUseCase {

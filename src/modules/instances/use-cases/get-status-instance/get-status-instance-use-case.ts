@@ -1,5 +1,5 @@
-import { prisma } from "../../database/prisma";
-import { InMemoryInstanceRepository } from "../../repositories/in-memory/in-memory-instance-repository";
+import { prisma } from "../../../../database/prisma";
+import { InMemoryInstanceRepository } from "../../repositories/in-memory-instance-repository";
 import { InstanceStatusResponseDTO } from "../../repositories/types/instance-dto";
 
 class GetStatusInstanceUseCase {

@@ -1,8 +1,8 @@
-import { logger } from "../../logger";
-import { prisma } from "../../database/prisma";
-import { InMemoryInstanceRepository } from "../../repositories/in-memory/in-memory-instance-repository";
-import { SaveIfHaveFile } from "../../utils/save-file";
-import { sanitizeString } from "../../utils/sanitize-string";
+import { logger } from "../../../../logger";
+import { prisma } from "../../../../database/prisma";
+import { InMemoryInstanceRepository } from "../../repositories/in-memory-instance-repository";
+import { SaveIfHaveFile } from "../../../../utils/save-file";
+import { sanitizeString } from "../../../../utils/sanitize-string";
 
 export class InitializeListenerUseCase {
   async execute(access_key: string) {

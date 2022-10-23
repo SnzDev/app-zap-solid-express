@@ -1,6 +1,6 @@
 import { MessageMedia } from "whatsapp-web.js";
-import { prisma } from "../../database/prisma";
-import { InMemoryInstanceRepository } from "../../repositories/in-memory/in-memory-instance-repository";
+import { prisma } from "../../../../database/prisma";
+import { InMemoryInstanceRepository } from "../../repositories/in-memory-instance-repository";
 
 interface SendMessageUseCaseDTO {
   phone_number: string;

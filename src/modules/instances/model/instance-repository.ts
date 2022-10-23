@@ -9,7 +9,7 @@ import {
   InstanceStatusDTO,
   InstanceStatusResponseDTO,
   SendMessageDTO,
-} from "./types/instance-dto";
+} from "../repositories/types/instance-dto";
 
 export interface InstanceRepository {
   create(props: InstanceCreateDTO): InstanceModelDTO;
