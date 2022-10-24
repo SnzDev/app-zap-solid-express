@@ -65,10 +65,10 @@ model chat_history {
   isEphemeral              Boolean            @default(false) @map("is_ephemeral")
   hasReaction              Boolean            @default(false) @map("has_reaction")
   isDynamicReplyButtonsMsg Boolean            @default(false) @map("is_dynamic_reply_buttons_msg")
-  vCards                   Json?              @map("v_cards")
-  mentionedIds             Json?              @map("mentioned_ids")
-  links                    Json?
-  location                 Json?
+  vCards                   String?            @map("v_cards")
+  mentionedIds             String?            @map("mentioned_ids")
+  links                    String?
+  location                 String?
   quotedStanzaID           String?
   quotedParticipant        String?
   created_at               DateTime           @default(now())
