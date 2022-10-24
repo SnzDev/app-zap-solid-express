@@ -98,7 +98,7 @@ export class InitializeListenerUseCase {
               data: {
                 question_response: msg.body,
                 question_answer_correct: true,
-                question_response_date: moment().format("YYYY-MM-DD HH:MM"),
+                question_response_date: new Date(),
               },
               where: { id: lastSend.id },
             })
