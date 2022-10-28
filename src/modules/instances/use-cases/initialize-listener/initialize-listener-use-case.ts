@@ -34,7 +34,11 @@ export class InitializeListenerUseCase {
       const clientInfo = existsCompany.client.info;
       prisma.company
         .update({
-          data: { app: clientInfo.pushname, line: clientInfo.wid.user, qr: "" },
+          data: {
+            app: clientInfo.pushname ?? undefined,
+            line: clientInfo.wid.user,
+            qr: "",
+          },
           where: { access_key: existsCompany.access_key },
         })
         .then(() => logger.info(`Line: ${company.name}, qrcode removed`))

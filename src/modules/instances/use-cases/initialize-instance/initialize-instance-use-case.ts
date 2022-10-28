@@ -57,7 +57,7 @@ export class InitializeInstanceUseCase {
           prisma.company
             .update({
               data: {
-                app: clientInfo?.pushname,
+                app: clientInfo?.pushname ?? undefined,
                 line: clientInfo?.wid.user,
                 qr: "",
               },
