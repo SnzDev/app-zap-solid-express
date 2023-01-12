@@ -1,4 +1,3 @@
-import e from "express";
 import { Message } from "whatsapp-web.js";
 import { prisma } from "../database/prisma";
 import { logger } from "../logger";
@@ -50,7 +49,7 @@ export async function saveChatHistory({ msg, access_key }: SaveChatHistoryDTO) {
         body,
         deviceType,
         from,
-        isForwarded,
+        isForwarded: !!isForwarded ? true : false,
         timestamp,
         to,
         type,

@@ -28,4 +28,4 @@ app.use(
     });
   }
 );
-app.listen(3330, () => logger.info("Server is running!"));
+app.listen(3333, () => logger.info("Server is running!"));
