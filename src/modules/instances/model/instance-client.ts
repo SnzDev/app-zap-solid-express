@@ -4,8 +4,8 @@ export const ModelInstance = (access_key: string) =>
   new Client({
     puppeteer: {
       devtools: false,
-      // executablePath: executablePath,
-      headless: false,
+      executablePath: process.env.CHROME_PATH ?? undefined,
+      headless: process.env.HEADLESS == "true" ?? false,
       args: [
         "--no-sandbox",
         "--disable-setuid-sandbox",

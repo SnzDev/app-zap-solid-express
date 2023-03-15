@@ -54,8 +54,8 @@ export class InitializeListenerUseCase {
       //RETURN IF IT'S FROM GROUP
       if (msg.isStatus || msg.from.includes("@g.us")) return;
 
-      const file_url = await SaveIfHaveFile(existsCompany.access_key, msg);
-      if (file_url) logger.info(`Line: ${company.name}, File: ${file_url}`);
+      // const file_url = await SaveIfHaveFile(existsCompany.access_key, msg);
+      // if (file_url) logger.info(`Line: ${company.name}, File: ${file_url}`);
 
       if (msg.fromMe) {
         return logger.info(`Line: ${company.name}, msgSend`);

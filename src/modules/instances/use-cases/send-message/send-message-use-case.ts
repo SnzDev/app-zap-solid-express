@@ -64,6 +64,7 @@ export class SendMessageUsecase {
       body = await MessageMedia.fromUrl(file_url);
       options = {
         caption: `${message}`,
+        // sendMediaAsDocument: true,
       };
     }
 

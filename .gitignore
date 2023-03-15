@@ -2,3 +2,4 @@ node_modules/
 whatsapp_auth/
 public/
 build/
+.env
