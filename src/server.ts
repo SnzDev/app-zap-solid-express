@@ -4,6 +4,7 @@ import { routes } from "./routes";
 import cors from "cors";
 import "express-async-errors";
 
+const port = process.env.PORT ?? 3333;
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -28,4 +29,4 @@ app.use(
     });
   }
 );
-app.listen(3333, () => logger.info("Server is running!"));
+app.listen(port, () => logger.info(`Server is running on localPort: ${port}!`));
