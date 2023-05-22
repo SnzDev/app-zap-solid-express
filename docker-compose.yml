@@ -1,0 +1,31 @@
+version: '2.1'
+services:
+    api-zap:
+        image: api-zap
+        build: .
+        volumes:
+            - .:/api-zap
+            - node_modules:/api-zap/node_modules
+        ports:
+            - 3000:3333
+        networks:
+            - api-zap
+    mariadb:
+        image: mariadb:10.3
+        container_name: api-zap-mariadb
+        volumes:
+            - api-zap-data:/var/lib/mysql
+        ports:
+            - "3306:3306"
+        environment:
+            - MARIADB_ROOT_PASSWORD=api-zap
+            - MARIADB_DATABASE=api-zap
+        networks:
+            - api-zap
+networks:
+    api-zap:
+        driver: bridge
+
+volumes:
+    node_modules: {}
+    api-zap-data:
