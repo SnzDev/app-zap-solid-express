@@ -45,7 +45,7 @@ export class InitializeInstanceUseCase {
               data: { qr: qr },
             })
             .then(() => logger.info(`Line: ${company.name}, qrcode update`))
-            .catch((e) =>
+            .catch((e: Error) =>
               logger.error(`Line: ${company.name}, qrUpdateError: ${e}`)
             );
           resolve(qr);
@@ -65,7 +65,7 @@ export class InitializeInstanceUseCase {
             })
             .then(() => logger.info(`Line: ${company.name}, qrcode removed`))
 
-            .catch((e) =>
+            .catch((e: Error) =>
               logger.error(`Line: ${company.name}, updateClientInfo: ${e}`)
             );
           resolve(true);

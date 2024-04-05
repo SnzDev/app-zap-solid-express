@@ -24,7 +24,7 @@ export class InitializeListenerUseCase {
           data: { qr: qr },
         })
         .then(() => logger.info(`Line: ${company.name}, qrcode update`))
-        .catch((e) =>
+        .catch((e: Error) =>
           logger.error(`Line: ${company.name}, qrUpdateError: ${e}`)
         );
     });
@@ -42,7 +42,7 @@ export class InitializeListenerUseCase {
           where: { access_key: existsCompany.access_key },
         })
         .then(() => logger.info(`Line: ${company.name}, qrcode removed`))
-        .catch((e) =>
+        .catch((e: Error) =>
           logger.error(`Line: ${company.name}, updateClientInfo: ${e}`)
         );
 
@@ -83,10 +83,8 @@ export class InitializeListenerUseCase {
             },
             where: { id: lastSend.id },
           })
-          .then((response) =>
-            logger.info(`Line: ${company.name}, updateResponse`)
-          )
-          .catch((e) =>
+          .then(() => logger.info(`Line: ${company.name}, updateResponse`))
+          .catch((e: Error) =>
             logger.error(
               `Line: ${company.name}, updateResponseStartmessage: ${e}`
             )
@@ -106,7 +104,7 @@ export class InitializeListenerUseCase {
               },
               where: { id: lastSend.id },
             })
-            .catch((e) =>
+            .catch((e: Error) =>
               logger.error(
                 `Line: ${company.name}, updateResponseStartMessage: ${e}`
               )
@@ -132,7 +130,7 @@ export class InitializeListenerUseCase {
               },
               where: { id: lastSend.id },
             })
-            .catch((e) =>
+            .catch((e: Error) =>
               logger.error(
                 `Line: ${company.name}, updateResponseStartMessage: ${e}`
               )
@@ -168,7 +166,7 @@ export class InitializeListenerUseCase {
           data: { ack: msg.ack },
           where: { id: isSended.id },
         })
-        .catch((e) =>
+        .catch((e: Error) =>
           logger.error(`Line: ${company.name}, updateAckApi: ${e}`)
         );
       if (!updateAckApi) return;
@@ -182,7 +180,7 @@ export class InitializeListenerUseCase {
           data: { status: msg.ack },
           where: { protocol: isSended.messageId },
         })
-        .catch((e) =>
+        .catch((e: Error) =>
           logger.error(`Line: ${company.name}, updateAckStartMessage: ${e}`)
         );
     });
