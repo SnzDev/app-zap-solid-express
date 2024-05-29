@@ -1,13 +1,11 @@
 import { Client, LocalAuth } from "whatsapp-web.js";
 
-const version = "2.2409.2";
+const version = process.env.WA_VERSION ?? "2.2412.54";
 export const ModelInstance = (access_key: string) =>
   new Client({
     webVersionCache: {
       type: "remote",
-      remotePath:
-        // "https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/2.2409.2.html",
-        `https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/${version}.html`,
+      remotePath: `https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/${version}.html`,
     },
     webVersion: version,
 
