@@ -8,6 +8,7 @@ import { SendMessageUsecase } from "../send-message/send-message-use-case";
 
 export class InitializeListenerUseCase {
   async execute(access_key: string) {
+    let qrCounter = 0;
     if (!access_key) throw new Error("System needs access_key");
 
     const inMemoryInstanceRepository = InMemoryInstanceRepository.getInstance();
@@ -18,6 +19,7 @@ export class InitializeListenerUseCase {
     });
 
     existsCompany.client.on("qr", (qr) => {
+      qrCounter++;
       prisma.company
         .update({
           where: { access_key: existsCompany.access_key },
@@ -27,6 +29,13 @@ export class InitializeListenerUseCase {
         .catch((e: Error) =>
           logger.error(`Line: ${company.name}, qrUpdateError: ${e}`)
         );
+
+      if (qrCounter > 20) {
+        existsCompany.client.destroy();
+        return logger.info(
+          `Line: ${company.name}, qrcode destroyed automatically`
+        );
+      }
     });
 
     existsCompany.client.once("ready", () => {

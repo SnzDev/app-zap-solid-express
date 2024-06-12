@@ -49,6 +49,6 @@
     "moment": "^2.29.4",
     "pino": "^8.6.1",
     "pino-http": "^8.2.1",
-    "whatsapp-web.js": "^1.23.1-alpha.6"
+    "whatsapp-web.js": "github:pedroslopez/whatsapp-web.js#webpack-exodus"
   }
 }
