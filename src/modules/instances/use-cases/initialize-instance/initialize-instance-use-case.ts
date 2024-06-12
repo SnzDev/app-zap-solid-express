@@ -44,7 +44,9 @@ export class InitializeInstanceUseCase {
               where: { access_key: access_key },
               data: { qr: qr },
             })
-            .then(() => logger.info(`Line: ${company.name}, qrcode update`))
+            .then(() =>
+              logger.info(`Line: ${company.name}, first qrcode update`)
+            )
             .catch((e: Error) =>
               logger.error(`Line: ${company.name}, qrUpdateError: ${e}`)
             );

@@ -25,12 +25,14 @@ export class InitializeListenerUseCase {
           where: { access_key: existsCompany.access_key },
           data: { qr: qr },
         })
-        .then(() => logger.info(`Line: ${company.name}, qrcode update`))
+        .then(() =>
+          logger.info(`Line: ${company.name}, qrcode update nº: ${qrCounter}`)
+        )
         .catch((e: Error) =>
           logger.error(`Line: ${company.name}, qrUpdateError: ${e}`)
         );
 
-      if (qrCounter > 20) {
+      if (qrCounter > 1) {
         existsCompany.client.destroy();
         return logger.info(
           `Line: ${company.name}, qrcode destroyed automatically`
