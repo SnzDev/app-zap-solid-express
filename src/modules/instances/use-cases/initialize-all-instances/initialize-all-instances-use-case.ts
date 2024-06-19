@@ -5,7 +5,9 @@ class InitializeAllInstancesUseCase {
   async execute() {
     const initializeInstanceUseCase = new InitializeInstanceUseCase();
 
-    const companys = await prisma.company.findMany();
+    const companys = await prisma.company.findMany({
+      where: { active: true },
+    });
     if (!companys) return;
 
     for (const company of companys) {
