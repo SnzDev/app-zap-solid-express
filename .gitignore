@@ -3,3 +3,4 @@ whatsapp_auth/
 public/
 build/
 .env
+.wwebjs_cache

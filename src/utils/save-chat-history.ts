@@ -69,7 +69,7 @@ export async function saveChatHistory({ msg, access_key }: SaveChatHistoryDTO) {
         location: JSON.stringify({
           latitude: location?.latitude,
           longitude: location?.longitude,
-          description: location?.options,
+          // description: location?.options,
         }),
       },
     });
