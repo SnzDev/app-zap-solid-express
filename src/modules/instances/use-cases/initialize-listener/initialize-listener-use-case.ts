@@ -126,7 +126,10 @@ export class InitializeListenerUseCase {
           isStartMessage: true,
           date: { gte: twoDaysAgo },
         },
-        orderBy: { date: "desc" },
+        orderBy: [
+          { date: "desc" },
+          { hour: "desc" },
+        ],
         include: { chatHistory: true, messages: true },
       });
 
