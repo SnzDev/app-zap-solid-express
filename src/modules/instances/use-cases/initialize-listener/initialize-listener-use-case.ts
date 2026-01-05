@@ -92,13 +92,13 @@ export class InitializeListenerUseCase {
           isStartMessage: true,
           date: { gte: twoDaysAgo },
         },
-        orderBy: { chatHistory: { timestamp: "desc" } },
+        orderBy: { date: "desc" },
         include: { chatHistory: true, messages: true },
       });
 
-      if (!lastSend || !lastSend.messages) {
+      if (!lastSend || !lastSend.messages || !lastSend.chatHistory) {
         logger.info(
-          `[SURVEY] No survey found or expired - Line: ${company.name}, phone: ${number}, date_limit: ${twoDaysAgo.toISOString()}`
+          `[SURVEY] No survey found, expired, or missing chatHistory - Line: ${company.name}, phone: ${number}, date_limit: ${twoDaysAgo.toISOString()}, has_lastSend: ${!!lastSend}, has_messages: ${!!lastSend?.messages}, has_chatHistory: ${!!lastSend?.chatHistory}`
         );
         return;
       }
