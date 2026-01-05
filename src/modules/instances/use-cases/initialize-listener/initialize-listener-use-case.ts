@@ -76,8 +76,40 @@ export class InitializeListenerUseCase {
       logger.info(`Line: ${company.name}, msgReceive`);
       const sendMessageUseCase = new SendMessageUsecase();
 
-      const [number] = msg.from.split("@");
-
+      // Extract phone number, handling LID users
+      let number: string;
+      const [fromId] = msg.from.split("@");
+      
+      // Check if it's a LID user (format: 275011101319237@lid)
+      const isLidUser = msg.from.includes("@lid");
+      
+      if (isLidUser) {
+        try {
+          const contactInfo = await existsCompany.client.getContactLidAndPhone([msg.from]);
+          if (contactInfo && contactInfo.length > 0 && contactInfo[0].pn) {
+            number = contactInfo[0].pn;
+            logger.info(
+              `[SURVEY] LID user detected - Line: ${company.name}, from: ${msg.from}, phone: ${number}`
+            );
+          } else {
+            // Fallback to original extraction if getContactLidAndPhone doesn't return phone
+            number = fromId;
+            logger.info(
+              `[SURVEY] LID user but no phone found - Line: ${company.name}, from: ${msg.from}, using: ${number}`
+            );
+          }
+        } catch (error) {
+          // Fallback to original extraction on error
+          number = fromId;
+          logger.error(
+            `[SURVEY] Error getting LID phone - Line: ${company.name}, from: ${msg.from}, error: ${error}, using: ${number}`
+          );
+        }
+      } else {
+        // Regular phone number
+        number = fromId;
+      }
+      
       const twoDaysAgo = new Date();
       twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
       twoDaysAgo.setHours(0, 0, 0, 0);
