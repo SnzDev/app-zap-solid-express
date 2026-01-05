@@ -78,15 +78,35 @@ export class InitializeListenerUseCase {
 
       const [number] = msg.from.split("@");
 
+      const twoDaysAgo = new Date();
+      twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
+      twoDaysAgo.setHours(0, 0, 0, 0);
+
+      logger.info(
+        `[SURVEY] Searching for survey - Line: ${company.name}, phone: ${number}, date_limit: ${twoDaysAgo.toISOString()}`
+      );
+
       const [lastSend] = await prisma.shipping_history.findMany({
-        where: { phone_number: number, isStartMessage: true },
+        where: {
+          phone_number: number,
+          isStartMessage: true,
+          date: { gte: twoDaysAgo },
+        },
         orderBy: { chatHistory: { timestamp: "desc" } },
         include: { chatHistory: true, messages: true },
       });
 
-      if (!lastSend || !lastSend.messages) return;
+      if (!lastSend || !lastSend.messages) {
+        logger.info(
+          `[SURVEY] No survey found or expired - Line: ${company.name}, phone: ${number}, date_limit: ${twoDaysAgo.toISOString()}`
+        );
+        return;
+      }
 
       if (!lastSend.messages.is_survey && !lastSend.question_response) {
+        logger.info(
+          `[SURVEY] Not a survey but has pending response - Line: ${company.name}, phone: ${number}, id_survey: ${lastSend.id_survey ?? "N/A"}`
+        );
         return prisma.shipping_history
           .update({
             data: {
@@ -102,10 +122,34 @@ export class InitializeListenerUseCase {
           );
       }
       if (lastSend.messages.is_survey && !lastSend.question_response) {
-        if (
-          sanitizeString(msg.body) ===
-          sanitizeString(lastSend.messages.first_option)
-        ) {
+        const surveyDate = lastSend.date ? new Date(lastSend.date) : null;
+        const daysDifference = surveyDate
+          ? Math.floor(
+              (new Date().getTime() - surveyDate.getTime()) /
+                (1000 * 60 * 60 * 24)
+            )
+          : null;
+
+        logger.info(
+          `[SURVEY] Processing survey response - Line: ${company.name}, phone: ${number}, survey_date: ${surveyDate?.toISOString() ?? "N/A"}, date_limit: ${twoDaysAgo.toISOString()}, days_diff: ${daysDifference ?? "N/A"}, id_survey: ${lastSend.id_survey ?? "N/A"}`
+        );
+
+        const receivedBodyOriginal = msg.body;
+        const receivedBodySanitized = sanitizeString(msg.body);
+        const firstOptionOriginal = lastSend.messages.first_option ?? "";
+        const firstOptionSanitized = sanitizeString(
+          lastSend.messages.first_option
+        );
+
+        logger.info(
+          `[SURVEY] Comparing with first_option - Line: ${company.name}, phone: ${number}, received_original: "${receivedBodyOriginal}", received_sanitized: "${receivedBodySanitized}", first_option_original: "${firstOptionOriginal}", first_option_sanitized: "${firstOptionSanitized}", match: ${receivedBodySanitized === firstOptionSanitized}, id_survey: ${lastSend.id_survey ?? "N/A"}`
+        );
+
+        if (receivedBodySanitized === firstOptionSanitized) {
+          logger.info(
+            `[SURVEY] Response matches first_option - Line: ${company.name}, phone: ${number}, response: "${receivedBodyOriginal}", sending first_answer, id_survey: ${lastSend.id_survey ?? "N/A"}`
+          );
+
           await prisma.shipping_history
             .update({
               data: {
@@ -120,44 +164,78 @@ export class InitializeListenerUseCase {
                 `Line: ${company.name}, updateResponseStartMessage: ${e}`
               )
             );
+
+          const firstAnswer =
+            lastSend.messages.first_answer ?? "Resposta registrada";
+          logger.info(
+            `[SURVEY] Sending first_answer - Line: ${company.name}, phone: ${number}, answer: "${firstAnswer}", id_survey: ${lastSend.id_survey ?? "N/A"}`
+          );
+
           await sendMessageUseCase.execute({
             access_key,
-            message: lastSend.messages.first_answer ?? "Resposta registrada",
-            phone_number: number,
-            file_url: "",
-          });
-          return;
-        }
-        if (
-          sanitizeString(msg.body) ===
-          sanitizeString(lastSend.messages.second_option)
-        ) {
-          await prisma.shipping_history
-            .update({
-              data: {
-                question_response: msg.body,
-                question_answer_correct: true,
-                question_response_date: new Date(),
-              },
-              where: { id: lastSend.id },
-            })
-            .catch((e: Error) =>
-              logger.error(
-                `Line: ${company.name}, updateResponseStartMessage: ${e}`
-              )
-            );
-          await sendMessageUseCase.execute({
-            access_key,
-            message: lastSend.messages.second_answer ?? "Resposta registrada",
+            message: firstAnswer,
             phone_number: number,
             file_url: "",
           });
           return;
         }
 
+        const secondOptionOriginal = lastSend.messages.second_option ?? "";
+        const secondOptionSanitized = sanitizeString(
+          lastSend.messages.second_option
+        );
+
+        logger.info(
+          `[SURVEY] Comparing with second_option - Line: ${company.name}, phone: ${number}, received_original: "${receivedBodyOriginal}", received_sanitized: "${receivedBodySanitized}", second_option_original: "${secondOptionOriginal}", second_option_sanitized: "${secondOptionSanitized}", match: ${receivedBodySanitized === secondOptionSanitized}, id_survey: ${lastSend.id_survey ?? "N/A"}`
+        );
+
+        if (receivedBodySanitized === secondOptionSanitized) {
+          logger.info(
+            `[SURVEY] Response matches second_option - Line: ${company.name}, phone: ${number}, response: "${receivedBodyOriginal}", sending second_answer, id_survey: ${lastSend.id_survey ?? "N/A"}`
+          );
+
+          await prisma.shipping_history
+            .update({
+              data: {
+                question_response: msg.body,
+                question_answer_correct: true,
+                question_response_date: new Date(),
+              },
+              where: { id: lastSend.id },
+            })
+            .catch((e: Error) =>
+              logger.error(
+                `Line: ${company.name}, updateResponseStartMessage: ${e}`
+              )
+            );
+
+          const secondAnswer =
+            lastSend.messages.second_answer ?? "Resposta registrada";
+          logger.info(
+            `[SURVEY] Sending second_answer - Line: ${company.name}, phone: ${number}, answer: "${secondAnswer}", id_survey: ${lastSend.id_survey ?? "N/A"}`
+          );
+
+          await sendMessageUseCase.execute({
+            access_key,
+            message: secondAnswer,
+            phone_number: number,
+            file_url: "",
+          });
+          return;
+        }
+
+        logger.info(
+          `[SURVEY] Response does not match any option - Line: ${company.name}, phone: ${number}, received: "${receivedBodyOriginal}", expected: "${firstOptionOriginal}" or "${secondOptionOriginal}", id_survey: ${lastSend.id_survey ?? "N/A"}`
+        );
+
+        const errorMessage = `Responda apenas: ${lastSend.messages.first_option} ou ${lastSend.messages.second_option}`;
+        logger.info(
+          `[SURVEY] Sending error message - Line: ${company.name}, phone: ${number}, message: "${errorMessage}", id_survey: ${lastSend.id_survey ?? "N/A"}`
+        );
+
         await sendMessageUseCase.execute({
           access_key,
-          message: `Responda apenas: ${lastSend.messages.first_option} ou ${lastSend.messages.second_option}`,
+          message: errorMessage,
           phone_number: number,
           file_url: "",
         });
