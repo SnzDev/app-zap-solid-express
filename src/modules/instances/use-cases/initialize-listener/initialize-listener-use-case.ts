@@ -87,7 +87,9 @@ export class InitializeListenerUseCase {
         try {
           const contactInfo = await existsCompany.client.getContactLidAndPhone([msg.from]);
           if (contactInfo && contactInfo.length > 0 && contactInfo[0].pn) {
-            number = contactInfo[0].pn;
+            // Extract phone number from format: 558699135090@c.us
+            const [phoneNumber] = contactInfo[0].pn.split("@");
+            number = phoneNumber;
             logger.info(
               `[SURVEY] LID user detected - Line: ${company.name}, from: ${msg.from}, phone: ${number}`
             );
