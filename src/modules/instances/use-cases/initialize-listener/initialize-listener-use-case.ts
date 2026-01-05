@@ -130,14 +130,53 @@ export class InitializeListenerUseCase {
         include: { chatHistory: true, messages: true },
       });
 
-      if (!lastSend || !lastSend.messages || !lastSend.chatHistory) {
+      if (!lastSend) {
         logger.info(
-          `[SURVEY] No survey found, expired, or missing chatHistory - Line: ${company.name}, phone: ${number}, date_limit: ${twoDaysAgo.toISOString()}, has_lastSend: ${!!lastSend}, has_messages: ${!!lastSend?.messages}, has_chatHistory: ${!!lastSend?.chatHistory}`
+          `[SURVEY] No survey found or expired - Line: ${company.name}, phone: ${number}, date_limit: ${twoDaysAgo.toISOString()}`
         );
         return;
       }
 
-      if (!lastSend.messages.is_survey && !lastSend.question_response) {
+      // Log detailed information about the found record
+      logger.info(
+        `[SURVEY] Found shipping_history - Line: ${company.name}, phone: ${number}, id: ${lastSend.id}, id_message: ${lastSend.id_message ?? "N/A"}, id_survey: ${lastSend.id_survey ?? "N/A"}, has_messages: ${!!lastSend.messages}, has_chatHistory: ${!!lastSend.chatHistory}, date: ${lastSend.date?.toISOString() ?? "N/A"}`
+      );
+
+      // If messages relation is missing, try to fetch it directly
+      let messagesData = lastSend.messages;
+      if (!messagesData && lastSend.id_message) {
+        logger.info(
+          `[SURVEY] Messages relation missing, fetching directly - Line: ${company.name}, id_message: ${lastSend.id_message}`
+        );
+        messagesData = await prisma.messages.findUnique({
+          where: { id: lastSend.id_message },
+        });
+        if (messagesData) {
+          logger.info(
+            `[SURVEY] Messages fetched successfully - Line: ${company.name}, is_survey: ${messagesData.is_survey}`
+          );
+        } else {
+          logger.warn(
+            `[SURVEY] Messages not found in database - Line: ${company.name}, id_message: ${lastSend.id_message}`
+          );
+        }
+      }
+
+      if (!messagesData) {
+        logger.info(
+          `[SURVEY] No messages data available - Line: ${company.name}, phone: ${number}, id_message: ${lastSend.id_message ?? "N/A"}`
+        );
+        return;
+      }
+
+      if (!lastSend.chatHistory) {
+        logger.info(
+          `[SURVEY] Missing chatHistory - Line: ${company.name}, phone: ${number}, protocol: ${lastSend.protocol}`
+        );
+        return;
+      }
+
+      if (!messagesData.is_survey && !lastSend.question_response) {
         logger.info(
           `[SURVEY] Not a survey but has pending response - Line: ${company.name}, phone: ${number}, id_survey: ${lastSend.id_survey ?? "N/A"}`
         );
@@ -155,7 +194,7 @@ export class InitializeListenerUseCase {
             )
           );
       }
-      if (lastSend.messages.is_survey && !lastSend.question_response) {
+      if (messagesData.is_survey && !lastSend.question_response) {
         const surveyDate = lastSend.date ? new Date(lastSend.date) : null;
         const daysDifference = surveyDate
           ? Math.floor(
@@ -170,9 +209,9 @@ export class InitializeListenerUseCase {
 
         const receivedBodyOriginal = msg.body;
         const receivedBodySanitized = sanitizeString(msg.body);
-        const firstOptionOriginal = lastSend.messages.first_option ?? "";
+        const firstOptionOriginal = messagesData.first_option ?? "";
         const firstOptionSanitized = sanitizeString(
-          lastSend.messages.first_option
+          messagesData.first_option
         );
 
         logger.info(
@@ -200,7 +239,7 @@ export class InitializeListenerUseCase {
             );
 
           const firstAnswer =
-            lastSend.messages.first_answer ?? "Resposta registrada";
+            messagesData.first_answer ?? "Resposta registrada";
           logger.info(
             `[SURVEY] Sending first_answer - Line: ${company.name}, phone: ${number}, answer: "${firstAnswer}", id_survey: ${lastSend.id_survey ?? "N/A"}`
           );
@@ -214,9 +253,9 @@ export class InitializeListenerUseCase {
           return;
         }
 
-        const secondOptionOriginal = lastSend.messages.second_option ?? "";
+        const secondOptionOriginal = messagesData.second_option ?? "";
         const secondOptionSanitized = sanitizeString(
-          lastSend.messages.second_option
+          messagesData.second_option
         );
 
         logger.info(
@@ -244,7 +283,7 @@ export class InitializeListenerUseCase {
             );
 
           const secondAnswer =
-            lastSend.messages.second_answer ?? "Resposta registrada";
+            messagesData.second_answer ?? "Resposta registrada";
           logger.info(
             `[SURVEY] Sending second_answer - Line: ${company.name}, phone: ${number}, answer: "${secondAnswer}", id_survey: ${lastSend.id_survey ?? "N/A"}`
           );
@@ -262,7 +301,7 @@ export class InitializeListenerUseCase {
           `[SURVEY] Response does not match any option - Line: ${company.name}, phone: ${number}, received: "${receivedBodyOriginal}", expected: "${firstOptionOriginal}" or "${secondOptionOriginal}", id_survey: ${lastSend.id_survey ?? "N/A"}`
         );
 
-        const errorMessage = `Responda apenas: ${lastSend.messages.first_option} ou ${lastSend.messages.second_option}`;
+        const errorMessage = `Responda apenas: ${messagesData.first_option} ou ${messagesData.second_option}`;
         logger.info(
           `[SURVEY] Sending error message - Line: ${company.name}, phone: ${number}, message: "${errorMessage}", id_survey: ${lastSend.id_survey ?? "N/A"}`
         );
